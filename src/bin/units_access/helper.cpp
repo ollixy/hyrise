@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include <boost/regex.hpp>
 
 #include "access/HashBuild.h"
 #include "access/HashJoinProbe.h"
@@ -99,11 +100,32 @@ bool isEdgeEqual(
 
 
 
-std::string loadFromFile(std::string path) {
+std::string loadFromFile(const std::string& path) {
+  parameter_map_t map;
+  return loadParameterized(path, map);
+}
+
+void addParameterf(parameter_map_t& map, const std::string& name, float value) {
+  map[":" + name] = std::make_shared<FloatParameterValue>(value);
+}
+
+void addParameteri(parameter_map_t& map, const std::string& name, int value) {
+  map[":" + name] = std::make_shared<IntParameterValue>(value);
+}
+
+void addParameters(parameter_map_t& map, const std::string& name, const std::string& value) {
+  map[":" + name] = std::make_shared<StringParameterValue>(value);
+}
+
+std::string loadParameterized(const std::string &path, const parameter_map_t& params) {
   std::ifstream data_file(path.c_str());
-  std::string result((std::istreambuf_iterator<char>(data_file)), std::istreambuf_iterator<char>());
+  std::string file((std::istreambuf_iterator<char>(data_file)), std::istreambuf_iterator<char>());
   data_file.close();
-  return result;
+
+  for (auto& param : params)
+    file = boost::regex_replace(file, boost::regex(param.first), param.second->toString());
+
+  return file;
 }
 
 class MockedConnection : public hyrise::net::AbstractConnection {

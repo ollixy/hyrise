@@ -35,7 +35,57 @@ bool isEdgeEqual(
     const std::string &src,
     const std::string &dst);
 
-std::string loadFromFile(std::string path);
+namespace {
+  template <typename T>
+    std::string toStr(const T& t) {
+    std::ostringstream os;
+    os << t;
+    return os.str();
+  }
+} // namespace
+
+class ParameterValue;
+typedef std::shared_ptr<ParameterValue> value_ptr_t;
+typedef std::map<std::string, value_ptr_t> parameter_map_t;
+
+class ParameterValue {
+ public:
+  virtual std::string toString() const = 0;
+};
+
+class FloatParameterValue : public ParameterValue {
+ public:
+  FloatParameterValue(hyrise_float_t value) : _value(value) {}
+  std::string toString() const { return toStr(_value); }
+ 
+ private:
+  const hyrise_float_t _value;
+};
+
+class IntParameterValue : public ParameterValue {
+ public:
+  IntParameterValue(hyrise_int_t value) : _value(value) {}
+  std::string toString() const { return toStr(_value); }
+ 
+ private:
+  const hyrise_int_t _value;
+};
+
+class StringParameterValue : public ParameterValue {
+ public:
+  StringParameterValue(hyrise_string_t value) : _value("\"" + value + "\"") {}
+  std::string toString() const { return _value; }
+ 
+ private:
+  const hyrise_string_t _value;
+};
+
+void addParameteri(parameter_map_t& map, const std::string& name, int value);
+void addParameterf(parameter_map_t& map, const std::string& name, float value);
+void addParameters(parameter_map_t& map, const std::string& name, const std::string& value);
+
+std::string loadFromFile(const std::string& path);
+std::string loadParameterized(const std::string &path, const parameter_map_t& params);
 
 hyrise::storage::c_atable_ptr_t executeAndWait(
     std::string httpQuery,
