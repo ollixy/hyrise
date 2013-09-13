@@ -1,0 +1,24 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "DISTRICT",
+       "filename": "tpcc/district.csv",
+       "header": "tpcc/district_header.tbl",
+       "delimiter": ","
+    },
+    "select": {
+       "type": "SimpleTableScan",
+       "predicates": [
+         {"type": "EQ", "in": 0, "f": "D_W_ID", "vtype": 0 /*Int*/, "value": :w_id},
+       ]
+    },
+    "update": {
+       "type": "PosUpdateScan",
+       "data": {
+         "D_YTD": :d_ytd
+       }
+    }
+  },
+  "edges": [["load", "select"], ["select", "update"]]
+}

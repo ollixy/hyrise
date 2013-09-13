@@ -1,0 +1,16 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "NEW-ORDER",
+       "filename": "tpcc/new_order.csv",
+       "header": "tpcc/new_order_header.tbl",
+       "delimiter": ","
+    },
+    "insert": {
+       "type": "InsertScan",
+       "data" : [[:o_id, :d_id, :w_id]]
+    }
+  },
+  "edges": [["load", "insert"]]
+}

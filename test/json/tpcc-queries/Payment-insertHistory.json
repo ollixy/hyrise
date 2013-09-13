@@ -1,0 +1,16 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "HISTORY",
+       "filename": "tpcc/history.csv",
+       "header": "tpcc/history_header.tbl",
+       "delimiter": ","
+    },
+    "insert": {
+       "type": "InsertScan",
+       "data" : [[:c_id, :c_d_id, :c_w_id, :d_id, :w_id, :h_date, :h_amount)f, :h_data]]
+    }
+  },
+  "edges": [["load", "insert"]]
+}

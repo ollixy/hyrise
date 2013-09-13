@@ -1,0 +1,26 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "ORDER-LINE",
+       "filename": "tpcc/order_line.csv",
+       "header": "tpcc/order_line_header.tbl",
+       "delimiter": ","
+    },
+    "select": {
+       "type": "SimpleTableScan",
+       "predicates": [
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0 /*Int*/, "value": :o_w_id},
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0 /*Int*/, "value": :o_d_id},
+         {"type": "EQ", "in": 0, "f": "OL_C_ID", "vtype": 0 /*Int*/, "value": :c_id}
+       ]
+    },
+    "project": {
+       "type": "ProjectionScan",
+       "fields": ["O_ID", "O_CARRIER_ID", "O_ENTRY_D"]
+    }
+  },
+  "edges": [["load", "select"], ["select", "project"]]
+}

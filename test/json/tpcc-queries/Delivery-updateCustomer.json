@@ -1,0 +1,28 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "CUSTOMER",
+       "filename": "tpcc/customer.csv",
+       "header": "tpcc/customer_header.tbl",
+       "delimiter": ","
+    },
+    "select": {
+       "type": "SimpleTableScan",
+       "predicates": [
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "C_ID", "vtype": 0 /*Int*/, "value": :c_id},
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "C_D_ID", "vtype": 0 /*Int*/, "value": :d_id},
+         {"type": "EQ", "in": 0, "f": "C_W_ID", "vtype": 0 /*Int*/, "value": :w_id}
+       ]
+    },
+    "update": {
+       "type": "PosUpdateScan",
+       "data": {
+          "C_BALANCE": :ol_total
+       }
+    }
+  },
+  "edges": [["load", "select"], ["select", "update"]]
+}

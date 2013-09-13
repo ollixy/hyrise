@@ -1,0 +1,28 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "ORDER-LINE",
+       "filename": "tpcc/order_line.csv",
+       "header": "tpcc/order_line_header.tbl",
+       "delimiter": ","
+    },
+    "select": {
+       "type": "SimpleTableScan",
+       "predicates": [
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "OL_O_ID", "vtype": 0 /*Int*/, "value": :no_o_id},
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0 /*Int*/, "value": :d_id},
+         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0 /*Int*/, "value": :w_id}
+       ]
+    },
+    "update": {
+       "type": "PosUpdateScan",
+       "data": {
+          "OL_DELIVERY_D": :o_entry_d
+       }
+    }
+  },
+  "edges": [["load", "select"], ["select", "update"]]
+}

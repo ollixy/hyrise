@@ -1,0 +1,29 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "STOCK",
+       "filename": "tpcc/stock.csv",
+       "header": "tpcc/stock_header.tbl",
+       "delimiter": ","
+    },
+    "select": {
+       "type": "SimpleTableScan",
+       "predicates": [
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "S_I_ID", "vtype": 0 /*Int*/, "value": :ol_i_id},
+         {"type": "EQ", "in": 0, "f": "S_W_ID", "vtype": 0 /*Int*/, "value": :ol_supply_w_id}
+       ]
+    },
+    "update": {
+       "type": "PostUpdateScan",
+       "data": {
+          "S_QUANTITY": :s_quantity,
+          "S_ORDER_CNT": :s_order_cnt,
+          "S_REMOTE_CNT": :s_remote_cnt,
+          "S_YTD": ????
+       }
+    }
+  },
+  "edges": [["load", "select"], ["select", "update"]]
+}
