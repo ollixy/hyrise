@@ -4,7 +4,8 @@
 
 #include <json.h>
 #include <gtest/gtest.h>
-#include "helper/HwlocHelper.h"
+#include <helper/HwlocHelper.h>
+#include <helper/types.h>
 #include <storage/AbstractTable.h>
 
 //  Joins specified columns of a single table using hash join.
@@ -89,7 +90,8 @@ std::string loadParameterized(const std::string &path, const parameter_map_t& pa
 
 hyrise::storage::c_atable_ptr_t executeAndWait(
     std::string httpQuery,
+    hyrise::tx::transaction_id_t* tid = nullptr,
     size_t poolSize = getNumberOfCoresOnSystem(),
-    std::string *evt = NULL);
+    std::string *evt = nullptr);
 
 #endif  // SRC_BIN_UNITS_ACCESS_HELPER_H_

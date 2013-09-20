@@ -13,7 +13,7 @@
 #include "access/SortScan.h"
 
 #include "helper/HttpHelper.h"
-#include "helper/types.h"
+#include "helper/make_unique.h"
 
 #include "net/AbstractConnection.h"
 
@@ -164,11 +164,22 @@ class MockedConnection : public hyrise::net::AbstractConnection {
  */
 hyrise::storage::c_atable_ptr_t executeAndWait(
     std::string httpQuery,
+    hyrise::tx::transaction_id_t* tid_ptr,
     size_t poolSize,
     std::string* evt) {
   using namespace hyrise;
   using namespace hyrise::access;
-  std::unique_ptr<MockedConnection> conn(new MockedConnection("query="+httpQuery));
+  using namespace hyrise::tx;
+ 
+  std::stringstream query;
+  query << "query=" << httpQuery;
+  if (tid_ptr != nullptr && *tid_ptr != UNKNOWN) {
+    const auto tid = *tid_ptr;
+    std::cout << tid;
+    query << "&session_context=" << tid;
+  }
+
+  std::unique_ptr<MockedConnection> conn = make_unique<MockedConnection>(query.str());
 
   SharedScheduler::getInstance().resetScheduler("WSCoreBoundQueuesScheduler", poolSize);
   AbstractTaskScheduler * scheduler = SharedScheduler::getInstance().getScheduler();
@@ -203,5 +214,13 @@ hyrise::storage::c_atable_ptr_t executeAndWait(
     *evt = result_task->getEvent();
   }
   
+  if (tid_ptr != nullptr) {
+    auto context = response->getTxContext();
+    if (*tid_ptr == UNKNOWN)
+      *tid_ptr = context.tid;
+    else if (context.tid != *tid_ptr)
+      throw std::runtime_error("requested transaction id ignored!");
+  }
+
   return result_task->getResultTable();
 }
