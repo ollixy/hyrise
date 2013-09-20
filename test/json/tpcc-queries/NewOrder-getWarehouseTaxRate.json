@@ -3,9 +3,7 @@
     "load": {
        "type": "TableLoad",
        "table": "WAREHOUSE",
-       "filename": "tpcc/warehouse.csv",
-       "header": "tpcc/warehouse_header.tbl",
-       "delimiter": ","
+       "filename": "tables/tpcc/warehouse.tbl"
     },
     "select": {
        "type": "SimpleTableScan",

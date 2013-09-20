@@ -3,9 +3,7 @@
     "load": {
        "type": "TableLoad",
        "table": "ORDERS",
-       "filename": "tpcc/orders.csv",
-       "header": "tpcc/orders_header.tbl",
-       "delimiter": ","
+       "filename": "tables/tpcc/order.tbl"
     },
     "select": {
        "type": "SimpleTableScan",

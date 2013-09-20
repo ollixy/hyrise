@@ -3,9 +3,7 @@
     "load": {
        "type": "TableLoad",
        "table": "DISTRICT",
-       "filename": "tpcc/district.csv",
-       "header": "tpcc/district_header.tbl",
-       "delimiter": ","
+       "filename": "tables/tpcc/district.tbl"
     },
     "select": {
        "type": "SimpleTableScan",

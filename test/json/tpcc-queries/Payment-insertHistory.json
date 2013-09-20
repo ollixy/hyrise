@@ -3,9 +3,7 @@
     "load": {
        "type": "TableLoad",
        "table": "HISTORY",
-       "filename": "tpcc/history.csv",
-       "header": "tpcc/history_header.tbl",
-       "delimiter": ","
+       "filename": "tables/tpcc/history.tbl"
     },
     "insert": {
        "type": "InsertScan",

@@ -3,9 +3,7 @@
     "load": {
        "type": "TableLoad",
        "table": "STOCK",
-       "filename": "tpcc/stock.csv",
-       "header": "tpcc/stock_header.tbl",
-       "delimiter": ","
+       "filename": "tables/tpcc/stock.tbl"
     },
     "select": {
        "type": "SimpleTableScan",
