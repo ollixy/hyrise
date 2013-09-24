@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "DISTRICT",
-       "filename": "tables/tpcc/district.tbl"
+       "table": "DISTRICT"
     },
     "select": {
        "type": "SimpleTableScan",

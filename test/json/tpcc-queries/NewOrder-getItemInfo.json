@@ -2,13 +2,12 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "ITEM",
-       "filename": "tables/tpcc/item.tbl"
+       "table": "ITEM"
     },
     "select": {
        "type": "SimpleTableScan",
        "predicates": [
-         {"type": "EQ", "in": 0, "f": "I_ID", "vtype": 0 /*Int*/, "value": :i_id)}
+         {"type": "EQ", "in": 0, "f": "I_ID", "vtype": 0 /*Int*/, "value": :i_id}
        ]
     },
     "project": {

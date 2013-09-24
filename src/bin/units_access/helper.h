@@ -81,9 +81,9 @@ class StringParameterValue : public ParameterValue {
   const hyrise_string_t _value;
 };
 
-void addParameteri(parameter_map_t& map, const std::string& name, int value);
-void addParameterf(parameter_map_t& map, const std::string& name, float value);
-void addParameters(parameter_map_t& map, const std::string& name, const std::string& value);
+void setParameteri(parameter_map_t& map, const std::string& name, int value);
+void setParameterf(parameter_map_t& map, const std::string& name, float value);
+void setParameters(parameter_map_t& map, const std::string& name, const std::string& value);
 
 std::string loadFromFile(const std::string& path);
 std::string loadParameterized(const std::string &path, const parameter_map_t& params);

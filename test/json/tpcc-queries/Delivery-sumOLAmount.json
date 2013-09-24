@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "ORDER-LINE",
-       "filename": "tables/tpcc/order_line.tbl"
+       "table": "ORDER-LINE"
     },
     "select": {
        "type": "SimpleTableScan",

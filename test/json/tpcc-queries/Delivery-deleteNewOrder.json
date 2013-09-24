@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "NEW_ORDER",
-       "filename": "tables/tpcc/new_order.tbl"
+       "table": "NEW-ORDER"
     },
     "select": {
        "type": "SimpleTableScan",

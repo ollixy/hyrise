@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "WAREHOUSE",
-       "filename": "tables/tpcc/warehouse.tbl"
+       "table": "WAREHOUSE"
     },
     "select": {
        "type": "SimpleTableScan",

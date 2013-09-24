@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "ORDERS",
-       "filename": "tables/tpcc/order.tbl"
+       "table": "ORDERS"
     },
     "select": {
        "type": "SimpleTableScan",

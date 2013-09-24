@@ -2,8 +2,7 @@
   "operators": {
     "load1": {
        "type": "TableLoad",
-       "table": "ORDER_LINE",
-       "filename": "tables/tpcc/order_line.tbl"
+       "table": "ORDER-LINE"
     },
     "load2": {
        "type": "TableLoad",
@@ -23,14 +22,14 @@
        "type": "SimpleTableScan",
        "predicates": [
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0 /*Int*/, "value": :????},
+         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0 /*Int*/, "value": :w_id},
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0 /*Int*/, "value": :????},
+         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0 /*Int*/, "value": :d_id},
          {"type": "AND"},
-         {"type": "BETWEEN", "in": 0, "f": "OL_O_ID", "vtype": 0 /*Int*/, "value": :????, "value2": :????},
+         {"type": "BETWEEN", "in": 0, "f": "OL_O_ID", "vtype": 0 /*Int*/, "value": :o_id1, "value2": :o_id2},
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "S_W_ID", "vtype": 0 /*Int*/, "value": :????},
-         {"type": "LT", "in": 0, "f": "S_QUANTITY", "vtype": 0 /*Int*/, "value": :????},
+         {"type": "EQ", "in": 0, "f": "S_W_ID", "vtype": 0 /*Int*/, "value": :w_id},
+         {"type": "LT", "in": 0, "f": "S_QUANTITY", "vtype": 0 /*Int*/, "value": :threshold},
        ]
     },
     "hash": {

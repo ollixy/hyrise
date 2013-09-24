@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "STOCK",
-       "filename": "tables/tpcc/stock.tbl"
+       "table": "STOCK"
     },
     "select": {
        "type": "SimpleTableScan",

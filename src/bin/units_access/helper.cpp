@@ -105,15 +105,15 @@ std::string loadFromFile(const std::string& path) {
   return loadParameterized(path, map);
 }
 
-void addParameterf(parameter_map_t& map, const std::string& name, float value) {
+void setParameterf(parameter_map_t& map, const std::string& name, float value) {
   map[":" + name] = std::make_shared<FloatParameterValue>(value);
 }
 
-void addParameteri(parameter_map_t& map, const std::string& name, int value) {
+void setParameteri(parameter_map_t& map, const std::string& name, int value) {
   map[":" + name] = std::make_shared<IntParameterValue>(value);
 }
 
-void addParameters(parameter_map_t& map, const std::string& name, const std::string& value) {
+void setParameters(parameter_map_t& map, const std::string& name, const std::string& value) {
   map[":" + name] = std::make_shared<StringParameterValue>(value);
 }
 
@@ -173,9 +173,10 @@ hyrise::storage::c_atable_ptr_t executeAndWait(
  
   std::stringstream query;
   query << "query=" << httpQuery;
+  //if (tid_ptr == nullptr)
+  //  query << "&autocommit=true";
   if (tid_ptr != nullptr && *tid_ptr != UNKNOWN) {
     const auto tid = *tid_ptr;
-    std::cout << tid;
     query << "&session_context=" << tid;
   }
 

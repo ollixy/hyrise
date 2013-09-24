@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "CUSTOMER",
-       "filename": "tables/tpcc/customer.tbl"
+       "table": "CUSTOMER"
     },
     "select": {
        "type": "SimpleTableScan",
@@ -21,3 +20,4 @@
     }
   },
   "edges": [["load", "select"], ["select", "project"]]
+}

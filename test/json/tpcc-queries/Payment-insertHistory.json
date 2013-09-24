@@ -2,8 +2,7 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "HISTORY",
-       "filename": "tables/tpcc/history.tbl"
+       "table": "HISTORY"
     },
     "insert": {
        "type": "InsertScan",
