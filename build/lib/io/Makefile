@@ -1,6 +1,6 @@
 src_dir := $(IMH_PROJECT_PATH)/src/lib/io
 libname := io
 
-lib_dependencies := -lstorage -lhelper -lcsv -lboost_thread
+lib_dependencies := -lstorage -lhelper -lcsv -lboost_thread -lpmem -lpmemalloc
 
 include $(IMH_PROJECT_PATH)/footer.mk

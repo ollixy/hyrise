@@ -137,6 +137,8 @@ public:
 
   virtual void debugStructure(size_t level=0) const;
 
+  void persist_scattered(const pos_list_t& elements, bool new_elements = true) const override;
+
 private:
 
   /**

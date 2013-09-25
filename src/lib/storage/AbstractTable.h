@@ -16,13 +16,13 @@
 #include <string>
 
 #include "helper/types.h"
+#include "io/logging.h"
 #include "helper/locking.h"
 #include "helper/unique_id.h"
 
 #include "storage/AbstractResource.h"
 #include "storage/BaseDictionary.h"
 #include "storage/storage_types.h"
-
 
 class ColumnMetadata;
 class AbstractDictionary;
@@ -289,6 +289,7 @@ public:
       valueId.valueId = map->getValueIdForValue(value);
     } else if (create) {
       valueId.valueId = map->addValue(value);
+      hyrise::io::Logger::getInstance().logDictionary<T>(table_id, column, value, valueId.valueId);
       /*if (map->isOrdered()) {
         throw std::runtime_error("Cannot insert value in an ordered dictionary");
       } else {
@@ -526,6 +527,8 @@ public:
   unique_id getUuid() const;
 
   void setUuid(unique_id = unique_id());
+
+  virtual void persist_scattered(const pos_list_t& elements, bool new_elements = true) const = 0;
 
  private:
   // Global unique identifier for this object

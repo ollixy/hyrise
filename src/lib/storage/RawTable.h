@@ -207,6 +207,10 @@ public:
     STORAGE_NOT_IMPLEMENTED(RawTable, dictionaryAt());
   }
 
+  void persist_scattered(const pos_list_t& elements, bool new_elements = true) const override {
+    STORAGE_NOT_IMPLEMENTED(RawTable, persist_scattered());
+  }
+
 
 };
 #endif // SRC_LIB_STORAGE_RAWTABLE_H_

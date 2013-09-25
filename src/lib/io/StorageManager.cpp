@@ -22,6 +22,10 @@
 #include "storage/ColumnMetadata.h"
 #include "storage/TableBuilder.h"
 
+#ifdef PERSISTENCY_NVRAM
+#include "io/NVManager.h"
+#endif
+
 namespace hyrise {
 namespace io {
 
@@ -101,6 +105,9 @@ std::vector<std::string> StorageManager::getTableNames() const {
 
 void StorageManager::removeAll() {
   ResourceManager::clear();
+#ifdef PERSISTENCY_NVRAM
+  NVManager::getInstance().reset();
+#endif
 }
 
 void StorageManager::printResources() const {

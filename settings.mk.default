@@ -7,7 +7,10 @@ COVERAGE_TESTING := 0
 VAMPIR_TRACE := 0
 PAPI_TRACE := 0
 WITH_MYSQL := 0
+VERBOSE_BUILD := 0
 
+# persistency options: NONE | SIMPLELOGGER | BUFFEREDLOGGER | NVRAM
+PERSISTENCY := NONE
 
 # Following Option can be set optional
 

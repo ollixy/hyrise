@@ -7,6 +7,10 @@
 #include "storage/AttributeVectorFactory.h"
 #include "storage/ValueIdMap.hpp"
 
+#ifdef PERSISTENCY_NVRAM
+#include "storage/NVAttributeVector.h"
+#endif
+
 Table::Table(
   std::vector<const ColumnMetadata *> *m,
   std::vector<SharedDictionary> *d,
@@ -44,15 +48,15 @@ Table::Table(
 
 
   /** Build the attribute vector */
-  if (!sorted)
-    tuples = AttributeVectorFactory::getAttributeVector<value_id_t>(width, initial_size);
-  else {
+  if (!sorted) {
+    tuples = AttributeVectorFactory::getAttributeVector<value_id_t>(width, initial_size, 1, false, true);
+  } else {
     std::vector<uint64_t> bits(_dictionaries.size(), 0);
     if (d) {
       for (size_t i = 0; i < _dictionaries.size(); ++i)
         bits[i] = _dictionaries[i]->size() == 1 ? 1 : ceil(log(_dictionaries[i]->size()) / log(2.0));
     }
-    tuples = AttributeVectorFactory::getAttributeVector2<value_id_t>(width, initial_size, compressed, bits);
+    tuples = AttributeVectorFactory::getAttributeVector2<value_id_t>(width, initial_size, compressed, bits, false);
   }
 }
 
@@ -209,5 +213,13 @@ hyrise::storage::atable_ptr_t Table::copy() const {
   }
 
   return new_table;
+}
+
+void Table::persist_scattered(const pos_list_t& elements, bool new_elements) const {
+#ifdef PERSISTENCY_NVRAM
+  auto v = std::dynamic_pointer_cast<NVAttributeVector<value_id_t>>(tuples);
+  if(!v) return;
+  v->persist_scattered(elements);
+#endif
 }
 

@@ -25,6 +25,9 @@ results
 Session.vim
 .emacs-project
 *.DS_Store
+logfile
+
+test/dump/
 
 tools/hycal/hycal.dSYM/Contents/Resources/DWARF/hycal
 tools/hycal/hycal

@@ -30,6 +30,7 @@ libraries := $(json) $(lib_helper) $(lib_storage) $(lib_access) $(lib_io) $(lib_
 unit_tests_helper	:= $(bin_dir)/units_helper
 unit_tests_io 		:= $(bin_dir)/units_io
 unit_tests_storage 	:= $(bin_dir)/units_storage
+unit_tests_nvm	 	:= $(bin_dir)/units_nvm
 unit_tests_access 	:= $(bin_dir)/units_access
 unit_tests_taskscheduler	:=	$(bin_dir)/units_taskscheduler
 unit_tests_layouter 	:= $(bin_dir)/units_layouter
@@ -38,7 +39,7 @@ perf_regression		:= $(bin_dir)/perf_regression
 perf_datagen            := $(bin_dir)/perf_datagen
 test_relation_eq	:= $(bin_dir)/test_relation_eq
 
-basic_test_suites := $(unit_tests_helper) $(unit_tests_io) $(unit_tests_storage) $(unit_tests_layouter) $(unit_tests_access) $(unit_tests_taskscheduler) $(unit_tests_memory) $(unit_tests_net)
+basic_test_suites := $(unit_tests_helper) $(unit_tests_io) $(unit_tests_storage) $(unit_tests_nvm) $(unit_tests_layouter) $(unit_tests_access) $(unit_tests_taskscheduler) $(unit_tests_memory) $(unit_tests_net)
 aux_test_suites := $(test_relation_eq)
 
 regression_suite := $(perf_regression)
@@ -84,6 +85,7 @@ $(server_hyrise): $(libraries)
 $(unit_tests_helper): $(libraries)
 $(unit_tests_io): $(libraries)
 $(unit_tests_storage): $(libraries)
+$(unit_tests_nvm): $(libraries)
 $(unit_tests_net): $(libraries)
 $(unit_tests_access): $(libraries)
 $(unit_tests_taskscheduler): $(libraries)

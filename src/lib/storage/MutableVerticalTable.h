@@ -86,6 +86,8 @@ public:
 
   //* Offsets of slices in container
   std::vector<unsigned> slice_offset_in_container;
+
+  void persist_scattered(const pos_list_t& elements, bool new_elements = true) const override;
 };
 
 }}

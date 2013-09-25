@@ -17,11 +17,6 @@ TableMerger* createDefaultMerger() {
   return new TableMerger(new DefaultMergeStrategy, new SequentialHeapMerger, false);
 }
 
-Store::Store() :
-  merger(createDefaultMerger()) {
-  setUuid();
-}
-
 Store::Store(atable_ptr_t main_table) :
   delta(main_table->copy_structure_modifiable()),
   merger(createDefaultMerger()),
@@ -59,9 +54,9 @@ void Store::merge() {
   main_tables = merger->merge(tmp, true, validPositions);
 
   // Fixup the cid and tid vectors
-  _cidBeginVector = std::vector<tx::transaction_cid_t>(main_tables[0]->size(), tx::UNKNOWN_CID);
-  _cidEndVector = std::vector<tx::transaction_cid_t>(main_tables[0]->size(), tx::INF_CID);
-  _tidVector = std::vector<tx::transaction_id_t>(main_tables[0]->size(), tx::START_TID);
+  _cidBeginVector.assign(main_tables[0]->size(), tx::UNKNOWN_CID);
+  _cidEndVector.assign(main_tables[0]->size(), tx::INF_CID);
+  _tidVector.assign(main_tables[0]->size(), tx::START_TID);
 
   // Replace the delta partition
   delta = new_delta;
@@ -212,11 +207,7 @@ void Store::setDelta(atable_ptr_t _delta) {
 }
 
 atable_ptr_t Store::copy() const {
-  std::shared_ptr<Store> new_store = std::make_shared<Store>();
-
-  for (size_t i = 0; i < main_tables.size(); ++i) {
-    new_store->main_tables.push_back(main_tables[i]->copy());
-  }
+  std::shared_ptr<Store> new_store = std::make_shared<Store>(main_tables[0]);
 
   new_store->delta = delta->copy();
 
@@ -346,6 +337,9 @@ tx::TX_CODE Store::commitPositions(const pos_list_t& pos, const tx::transaction_
     }
     _tidVector[p] = tx::START_TID;
   }
+#ifdef PERSISTENCY_NVRAM
+  persist_scattered(pos, valid);
+#endif
   return tx::TX_CODE::TX_OK;
 }
 
@@ -378,6 +372,15 @@ tx::TX_CODE Store::unmarkForDeletion(const pos_list_t& pos, const tx::transactio
       _tidVector[p] = tx::START_TID;
   }
   return tx::TX_CODE::TX_OK;
+}
+
+void Store::persist_scattered(const pos_list_t& elements, bool new_elements) const {
+  if(new_elements) {
+    delta->persist_scattered(elements, true);
+    _cidBeginVector.persist_scattered(elements, true);
+  } else {
+    _cidEndVector.persist_scattered(elements, false);
+  }
 }
 
 }}

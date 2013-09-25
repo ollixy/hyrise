@@ -126,6 +126,8 @@ public:
   virtual void debugStructure(size_t level=0) const {
     std::cout << std::string(level, '\t') << "Table " << this << std::endl;
   }
+
+  void persist_scattered(const pos_list_t& elements, bool new_elements = true) const override;
 };
 
 #endif  // SRC_LIB_STORAGE_TABLE_H_

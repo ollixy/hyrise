@@ -18,6 +18,11 @@
 
 #include <helper/types.h>
 
+#ifdef PERSISTENCY_NVRAM
+#include <io/NVManager.h>
+#include <storage/NVVector.h>
+#endif
+
 namespace hyrise {
 namespace storage {
 
@@ -29,7 +34,6 @@ namespace storage {
  */
 class Store : public AbstractTable {
 public:
-  Store();
   explicit Store(atable_ptr_t main_table);
   virtual ~Store();
 
@@ -86,6 +90,7 @@ public:
   atable_ptr_t copy() const override;
   const attr_vectors_t getAttributeVectors(size_t column) const override;
   void debugStructure(size_t level=0) const override;
+  void persist_scattered(const pos_list_t& elements, bool new_elements = true) const override;
 
  private:
   //* Vector containing the main tables
@@ -101,10 +106,15 @@ public:
   table_offset_idx_t responsibleTable(size_t row) const;
 
   // TX Management
-  // Stores the CID of the transaction that created the row
-  std::vector<tx::transaction_id_t> _cidBeginVector;
-  // Stores the CID of the transaction that deleted the row
-  std::vector<tx::transaction_id_t> _cidEndVector;
+  // _cidBeginVector stores the CID of the transaction that created the row
+  // _cidEndVector stores the CID of the transaction that deleted the row
+#ifdef PERSISTENCY_NVRAM
+  storage::NVVector<tx::transaction_cid_t> _cidBeginVector;
+  storage::NVVector<tx::transaction_cid_t> _cidEndVector;
+#else
+  std::vector<tx::transaction_cid_t> _cidBeginVector;
+  std::vector<tx::transaction_cid_t> _cidEndVector;
+#endif
   // Stores the TID for each record to identify your own writes
   std::vector<tx::transaction_id_t> _tidVector;
   friend class PrettyPrinter;

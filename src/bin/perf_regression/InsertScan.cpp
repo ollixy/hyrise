@@ -2,6 +2,7 @@
 #include <gtest/gtest-bench.h>
 #include <gtest/gtest.h>
 #include <string>
+#include <sys/time.h>
 
 #include <access.h>
 #include <storage.h>
@@ -23,6 +24,8 @@ class InsertScanBase : public ::testing::Benchmark {
   hyrise::tx::TXContext ctx;
   hyrise::access::InsertScan is;
   hyrise::access::Commit c;
+  unsigned long begin_time, total_time;
+  uint _run, _warmUp, _numIterations;
 
  public:
   void BenchmarkSetUp() {
@@ -39,11 +42,29 @@ class InsertScanBase : public ::testing::Benchmark {
 
     c.setTXContext(ctx);
     c.addInput(t);
+
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    begin_time = 1000000 * tv.tv_sec + tv.tv_usec;
+  }
+
+  void BenchmarkTearDown() {
+    struct timeval tv;
+    gettimeofday(&tv,NULL);
+    if(_run == 0) total_time = 0;
+    if(_run > _warmUp) total_time += (1000000 * tv.tv_sec + tv.tv_usec) - begin_time;
+    if(_run == _warmUp + _numIterations - 1) printf("[      MSG ] RUNTIME_MEAN : %lu\n", total_time / _numIterations);
+    _run++;
+    _run %= (_warmUp + _numIterations);
   }
 
   InsertScanBase() {
-    SetNumIterations(10);
-    SetWarmUp(2);
+    _warmUp = 2;
+    _numIterations = 10;
+
+    SetNumIterations(_numIterations);
+    SetWarmUp(_warmUp);
+    printf("[      MSG ] Running %u warm up runs and %u benchmark runs\n", _warmUp, _numIterations);
   }
 };
 

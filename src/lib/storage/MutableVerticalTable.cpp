@@ -237,4 +237,10 @@ void MutableVerticalTable::debugStructure(size_t level) const {
   }
 }
 
+void MutableVerticalTable::persist_scattered(const pos_list_t& elements, bool new_elements) const {
+  for(const auto& c: containers) {
+    c->persist_scattered(elements, new_elements);
+  }
+}
+
 }}
