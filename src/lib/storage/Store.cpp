@@ -374,13 +374,16 @@ tx::TX_CODE Store::unmarkForDeletion(const pos_list_t& pos, const tx::transactio
   return tx::TX_CODE::TX_OK;
 }
 
+
 void Store::persist_scattered(const pos_list_t& elements, bool new_elements) const {
+#ifdef PERSISTENCY_NVRAM
   if(new_elements) {
     delta->persist_scattered(elements, true);
     _cidBeginVector.persist_scattered(elements, true);
   } else {
     _cidEndVector.persist_scattered(elements, false);
   }
+#endif
 }
 
 }}
