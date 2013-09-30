@@ -36,14 +36,6 @@ bool isEdgeEqual(
     const std::string &src,
     const std::string &dst);
 
-namespace {
-  template <typename T>
-    std::string toStr(const T& t) {
-    std::ostringstream os;
-    os << t;
-    return os.str();
-  }
-} // namespace
 
 class ParameterValue;
 typedef std::shared_ptr<ParameterValue> value_ptr_t;
@@ -51,37 +43,39 @@ typedef std::map<std::string, value_ptr_t> parameter_map_t;
 
 class ParameterValue {
  public:
-  virtual std::string toString() const = 0;
+  std::string toString() const {
+    return _value;
+  }
+ protected:
+   std::string _value;
 };
 
 class FloatParameterValue : public ParameterValue {
  public:
-  FloatParameterValue(hyrise_float_t value) : _value(value) {}
-  std::string toString() const { return toStr(_value); }
- 
- private:
-  const hyrise_float_t _value;
+  FloatParameterValue(hyrise_float_t value) {
+    std::ostringstream os;
+    os << value;
+    _value = os.str();
+  }
 };
 
 class IntParameterValue : public ParameterValue {
  public:
-  IntParameterValue(hyrise_int_t value) : _value(value) {}
-  std::string toString() const { return toStr(_value); }
- 
- private:
-  const hyrise_int_t _value;
+  IntParameterValue(hyrise_int_t value, size_t width = 0) {
+    std::ostringstream os;
+    os << std::right << std::setfill('0') << std::setw(width) << value;
+    _value = os.str();
+  }
 };
 
 class StringParameterValue : public ParameterValue {
  public:
-  StringParameterValue(hyrise_string_t value) : _value("\"" + value + "\"") {}
-  std::string toString() const { return _value; }
- 
- private:
-  const hyrise_string_t _value;
+  StringParameterValue(hyrise_string_t value) {
+    _value = '\"' + value + '\"';
+  }
 };
 
-void setParameteri(parameter_map_t& map, const std::string& name, int value);
+void setParameteri(parameter_map_t& map, const std::string& name, int value, size_t width = 0);
 void setParameterf(parameter_map_t& map, const std::string& name, float value);
 void setParameters(parameter_map_t& map, const std::string& name, const std::string& value);
 

@@ -109,8 +109,8 @@ void setParameterf(parameter_map_t& map, const std::string& name, float value) {
   map[":" + name] = std::make_shared<FloatParameterValue>(value);
 }
 
-void setParameteri(parameter_map_t& map, const std::string& name, int value) {
-  map[":" + name] = std::make_shared<IntParameterValue>(value);
+void setParameteri(parameter_map_t& map, const std::string& name, int value, size_t width) {
+  map[":" + name] = std::make_shared<IntParameterValue>(value, width);
 }
 
 void setParameters(parameter_map_t& map, const std::string& name, const std::string& value) {

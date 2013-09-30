@@ -11,7 +11,7 @@
 #include <storage/PrettyPrinter.h>
 
 namespace {
-  const std::string tpccQueryPath = "test/json/tpcc-queries";
+  const std::string tpccQueryPath = "test/json/tpcc";
 }
 
 namespace hyrise {
@@ -59,6 +59,8 @@ public:
   }
 
   void SetUp() {
+    loadTables();
+
     i_customer_size  = loadTable(Customer)->size();
     i_orders_size    = loadTable(Orders)->size();
     i_orderLine_size = loadTable(OrderLine)->size();
@@ -77,6 +79,10 @@ public:
 protected:
   typedef std::map<std::string, std::string> file_map_t;
 
+  void loadTables() {
+    executeAndWait(loadFromFile("test/tpcc/load_tpcc_tables.json"));
+  }
+
   void assureQueryFilesExist(const file_map_t& map) {
     for (auto& value : map) {
       std::ifstream s(value.second);
@@ -93,24 +99,23 @@ protected:
   const std::string _commit = "{\"operators\": {\"commit\": {\"type\": \"Commit\"}}}";
   const std::string _rollback = "{\"operators\": {\"rollback\": {\"type\": \"Rollback\"}}}";
 
-
   enum TpccTable { Customer, Orders, OrderLine, Warehouse, NewOrder, District, Item, Stock, History };
 
   static storage::c_atable_ptr_t loadTable(const TpccTable table, tx::transaction_id_t* tid = nullptr) {
     std::string tableName;
     std::string fileName;
     switch (table) {
-      case Customer:  tableName = "CUSTOMER"; fileName = "customer"; break;
-      case Orders:    tableName = "ORDERS"; fileName = "order"; break;
-      case OrderLine: tableName = "ORDER-LINE"; fileName = "order_line"; break;
-      case Warehouse: tableName = "WAREHOUSE"; fileName = "warehouse"; break;
-      case NewOrder:  tableName = "NEW-ORDER"; fileName = "new_order"; break;
-      case District:  tableName = "DISTRICT"; fileName = "district"; break;
-      case Item:      tableName = "ITEM"; fileName = "item"; break;
-      case Stock:     tableName = "STOCK"; fileName = "stock"; break;
-      case History:   tableName = "HISTORY"; fileName = "history"; break;
+      case Customer:  tableName = "CUSTOMER"; break;
+      case Orders:    tableName = "ORDERS"; break;
+      case OrderLine: tableName = "ORDER-LINE"; break;
+      case Warehouse: tableName = "WAREHOUSE"; break;
+      case NewOrder:  tableName = "NEW-ORDER"; break;
+      case District:  tableName = "DISTRICT"; break;
+      case Item:      tableName = "ITEM"; break;
+      case Stock:     tableName = "STOCK"; break;
+      case History:   tableName = "HISTORY"; break;
     }
-    return executeAndWait("{\"operators\": {\"load\": {\"type\": \"TableLoad\", \"filename\": \"tables/tpcc/" + fileName + ".tbl\", \"table\": \"" + tableName + "\"}" +
+    return executeAndWait("{\"operators\": {\"load\": {\"type\": \"TableLoad\", \"table\": \"" + tableName + "\"}" +
                           ", \"validate\": {\"type\": \"ValidatePositions\"}}, \"edges\": [[\"load\", \"validate\"]]}", tid);
   }
 };
@@ -150,8 +155,8 @@ TEST_F(TpccExecuteTest, DeliveryTest) {
   parameter_map_t map;
   setParameteri(map, "w_id", 1);
   setParameteri(map, "d_id", 1);
-  setParameteri(map, "o_carrier_id", 1337);
-  setParameters(map, "ol_delivery_d", "2013-09-20-02-16-31");
+  setParameteri(map, "o_carrier_id", 1);
+  setParameters(map, "date", "2013-09-20-02-16-31");
   
   tx::transaction_id_t tid = tx::UNKNOWN;
   
@@ -190,23 +195,30 @@ TEST_F(TpccExecuteTest, DeliveryTest) {
 }
 
 TEST_F(TpccExecuteTest, NewOrderTest) {
-  unsigned ol_cnt = 5;
   unsigned all_local = 1;
   bool rollback = false;
-  std::vector<int> i_ids(ol_cnt, 2);
+  std::vector<int> i_ids = {1, 2, 3, 4, 5, 7, 7};
+  unsigned ol_cnt = i_ids.size();
+  std::vector<int> i_w_ids(ol_cnt, 1);
+  std::vector<int> i_qtys(ol_cnt, 80);
+  ASSERT_EQ(i_w_ids.size(), ol_cnt);
+  ASSERT_EQ(i_qtys.size(), ol_cnt);
+  std::string ol_dist_info = "dist_info";
 
   assureQueryFilesExist(_newOrderMap);
 
   parameter_map_t map;
   setParameteri(map, "w_id", 1);
   setParameteri(map, "d_id", 1);
+  setParameteri(map, "d_id", 1);
+  setParameteri(map, "2d_id", 1, 2);
   setParameteri(map, "c_id", 1);
   setParameteri(map, "c_id", 2);
-  setParameters(map, "o_entry_d", "2013-09-20-02-16-31");
-  setParameteri(map, "o_carrier_id", 1337);
+  setParameters(map, "date", "2013-09-20-02-16-31");
+  setParameteri(map, "o_carrier_id", 1);
   setParameteri(map, "o_ol_cnt", ol_cnt);
-  //setParameteri(map, "i_qtys", 1);
   setParameteri(map, "all_local", all_local);
+  setParameters(map, "ol_dist_info", ol_dist_info);
 
   tx::transaction_id_t tid = tx::UNKNOWN;
 
@@ -230,7 +242,7 @@ TEST_F(TpccExecuteTest, NewOrderTest) {
 
   auto t3 = executeAndWait(loadParameterized(_newOrderMap["getDistrict"], map), &tid);
   ASSERT_EQ(t3->size(), 1);
-  const float d_tax = t3->getValue<float>("D_TAX", 0);
+  const float d_tax = t3->getValue<float>("W_TAX", 0);
   const unsigned o_id = t3->getValue<int>("D_NEXT_O_ID", 0);
   setParameteri(map, "o_id", o_id);
 
@@ -242,23 +254,61 @@ TEST_F(TpccExecuteTest, NewOrderTest) {
 
   setParameteri(map, "d_next_o_id", o_id + 1);
   executeAndWait(loadParameterized(_newOrderMap["incrementNextOrderId"], map), &tid);
-  std::cout << loadParameterized(_newOrderMap["createOrder"], map);
-  executeAndWait(loadParameterized(_newOrderMap["createOrder"], map), &tid); //ERROR!
+  executeAndWait(loadParameterized(_newOrderMap["createOrder"], map), &tid);
   executeAndWait(loadParameterized(_newOrderMap["createNewOrder"], map), &tid);
 
-  auto t5 = executeAndWait(loadParameterized(_newOrderMap["getStockInfo"], map), &tid);
-  t5->print();
-  ASSERT_EQ(t5->size(), 1);
-  const unsigned s_quantity = t5->getValue<int>("S_QUANTITY", 0);
-  const int s_ytd = t5->getValue<int>("S_YTD", 0);
-  const unsigned s_order_cnt = t5->getValue<int>("S_ORDER_CNT", 0);
-  const unsigned s_remote_cnt = t5->getValue<int>("S_REMOTE_CNT", 0);
-  const std::string s_data = t5->getValue<std::string>("S_DATA", 0);
-  ASSERT_EQ(t5->columnCount(), 6);
-  const std::string s_dist = t5->getValue<std::string>(5, 0);
-  
-  std::cout << loadParameterized(_newOrderMap["updateStock"], map);
-  std::cout << loadParameterized(_newOrderMap["createOrderLine"], map);
+  unsigned s_quantity;
+  int s_ytd;
+  unsigned s_order_cnt, s_remote_cnt;
+  std::string s_data, s_dist;
+  unsigned ol_number, ol_supply_w_id, ol_i_id, ol_quantity;
+  float ol_amount;
+
+  for (unsigned i = 0; i < ol_cnt; ++i) {
+    setParameteri(map, "ol_number", i + 1);
+    ol_supply_w_id = i_w_ids.at(i);
+    setParameteri(map, "ol_supply_w_id", ol_supply_w_id);
+    ol_i_id = i_ids.at(i);
+    setParameteri(map, "ol_i_id", ol_i_id);
+    ol_quantity = i_qtys.at(i);
+    setParameteri(map, "ol_quantity", ol_i_id);
+
+    auto t5 = executeAndWait(loadParameterized(_newOrderMap["getStockInfo"], map), &tid);
+    ASSERT_EQ(t5->size(), 1);
+
+    s_ytd = t5->getValue<int>("S_YTD", 0);
+    s_ytd += ol_quantity;
+    setParameteri(map, "s_ytd", s_ytd);
+
+    s_quantity = t5->getValue<int>("S_QUANTITY", 0);
+    s_order_cnt = t5->getValue<int>("S_ORDER_CNT", 0);
+    if (s_quantity >= ol_quantity + 10) {
+      s_quantity = s_quantity - ol_quantity;
+    }
+    else {
+      s_quantity = s_quantity + 91 - ol_quantity;
+      ++s_order_cnt;
+    }
+    setParameteri(map, "s_order_cnt", s_order_cnt);
+    setParameteri(map, "s_quantity", s_quantity);
+
+    s_remote_cnt = t5->getValue<int>("S_REMOTE_CNT", 0);
+    setParameteri(map, "s_remote_cnt", s_remote_cnt);
+
+    std::string s_data = t5->getValue<std::string>("S_DATA", 0);
+    std::string s_dist = t5->getValue<std::string>(5, 0);
+
+    ol_amount = ol_quantity * items.at(i).price;
+    setParameterf(map, "ol_amount", ol_amount);
+    
+    ASSERT_EQ(t5->columnCount(), 6);
+
+    std::cout << loadParameterized(_newOrderMap["updateStock"], map);
+    executeAndWait(loadParameterized(_newOrderMap["updateStock"], map), &tid);
+    executeAndWait(loadParameterized(_newOrderMap["createOrderLine"], map), &tid);
+  }
+
+  executeAndWait(_commit, &tid);
 }
 
 TEST_F(TpccExecuteTest, OrderStatusTest) {
@@ -273,10 +323,10 @@ TEST_F(TpccExecuteTest, OrderStatusTest) {
   setParameters(map, "c_last", "BARBARBAR");
 
   tx::transaction_id_t tid = tx::UNKNOWN;
-  
+ 
   //actually only one of them:
   auto t1 = executeAndWait(loadParameterized(_orderStatusMap["getCustomerByCId"], map), &tid);
-  ASSERT_EQ(1, t1->size());
+  ASSERT_EQ(t1->size(), 1);
 
   auto t2 = executeAndWait(loadParameterized(_orderStatusMap["getCustomersByLastName"], map), &tid);
   ASSERT_GE(t2->size(), 1);
@@ -284,12 +334,14 @@ TEST_F(TpccExecuteTest, OrderStatusTest) {
   setParameteri(map, "c_id", t2->getValue<int>("C_ID", chosenOne));
 
   auto t3 = executeAndWait(loadParameterized(_orderStatusMap["getLastOrder"], map), &tid);
-  ASSERT_GE(1, t3->size());
+  ASSERT_GE(t3->size(), 1);
   const unsigned o_id = t3->getValue<int>("O_ID", 0);
   setParameteri(map, "o_id", o_id);
 
   auto t4 = executeAndWait(loadParameterized(_orderStatusMap["getOrderLines"], map), &tid);
-  ASSERT_GE(1, t4->size());
+  ASSERT_GE(t4->size(), 1);
+
+  executeAndWait(_commit, &tid);
 }
 
 TEST_F(TpccExecuteTest, PaymentTest) {
@@ -303,7 +355,7 @@ TEST_F(TpccExecuteTest, PaymentTest) {
   setParameteri(map, "c_d_id", 1);
   setParameteri(map, "c_id", 1);
   setParameters(map, "c_last", "BARBARBAR");
-  setParameters(map, "h_date", "2013-09-20-02-16-31");
+  setParameters(map, "date", "2013-09-20-02-16-31");
 
   tx::transaction_id_t tid = tx::UNKNOWN;
   
@@ -315,18 +367,21 @@ TEST_F(TpccExecuteTest, StockLevelTest) {
   parameter_map_t map;
   setParameteri(map, "w_id", 1);
   setParameteri(map, "d_id", 1);
-  setParameteri(map, "threshold", 1);
+  setParameteri(map, "threshold", 100); //not perfect for real tpcc
 
   tx::transaction_id_t tid = tx::UNKNOWN;
 
   auto t1 = executeAndWait(loadParameterized(_stockLevelMap["getOId"], map), &tid);
   ASSERT_EQ(1, t1->size());
   const unsigned o_id = t1->getValue<int>("D_NEXT_O_ID", 0);
-  setParameteri(map, "o_id1", o_id);
-  setParameteri(map, "o_id2", o_id-20);
+  setParameteri(map, "o_id1", o_id-21);
+  setParameteri(map, "o_id2", o_id+1);
 
-  std::cout << loadParameterized(_stockLevelMap["getStockCount"], map);
-  //auto t2 = executeAndWait(loadParameterized(_stockLevelMap["getStockCount"], map), &tid);
+  auto t2 = executeAndWait(loadParameterized(_stockLevelMap["getStockCount"], map), &tid);
+  ASSERT_EQ(1, t2->size());
+  ASSERT_EQ(1, t2->columnCount());
+
+  executeAndWait(_commit, &tid);
 }
 
 } } // namespace hyrise::access
