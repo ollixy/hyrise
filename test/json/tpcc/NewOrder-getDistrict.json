@@ -14,7 +14,7 @@
     },
     "project": {
        "type": "ProjectionScan",
-       "fields": ["D_TAX", "D_NEXT_O_ID"]
+       "fields": ["W_TAX", "D_NEXT_O_ID"]
     }
   },
   "edges": [["load", "select"], ["select", "project"]]

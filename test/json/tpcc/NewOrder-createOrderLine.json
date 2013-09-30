@@ -6,7 +6,7 @@
     },
     "insert": {
        "type": "InsertScan",
-       "data" : [[:o_id, :d_id, :w_id, :ol_number, :ol_i_id, :ol_supply_w_id, :ol_quantity, :ol_amount, :ol_dist_info]]
+       "data" : [[:w_id, :d_id, :o_id, :ol_number, :ol_i_id, :date, :ol_amount, :ol_supply_w_id, :ol_quantity, :ol_dist_info]]
     }
   },
   "edges": [["load", "insert"]]

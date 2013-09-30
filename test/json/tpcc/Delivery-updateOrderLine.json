@@ -17,7 +17,7 @@
     "update": {
        "type": "PosUpdateScan",
        "data": {
-          "OL_DELIVERY_D": :ol_delivery_d
+          "OL_DELIVERY_D": :date
        }
     }
   },
