@@ -59,6 +59,7 @@ private:
   NVVectorInfo* _allocateVectorSpace(size_t size);
   NVVectorInfo* _retrieveVectorInfo(uint64_t uuid) const;
   bool _pmfsMounted();
+  bool _pmfsWritable();
 
   std::atomic<uint64_t> _uuidCounter;
   static bool _instanceCreated, _nonVolatileMode;

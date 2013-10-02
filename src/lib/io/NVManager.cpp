@@ -123,6 +123,9 @@ void NVManager::_initialize() {
   if(!_pmfsMounted()) {
     throw std::runtime_error("PMFS not mounted");
   }
+  if(!_pmfsWritable()) {
+    throw std::runtime_error("no write permission for PMFS");
+  }
   _uuidCounter = 1;
   NVStaticInfo *pstatic = NULL;
   if(_pmp) munmap(_pmp, NVM_FILESIZE);
@@ -218,6 +221,21 @@ bool NVManager::_pmfsMounted() {
     }
   }
   return isMounted;
+}
+
+bool NVManager::_pmfsWritable() {
+  FILE *fp = NULL;
+  bool isWritable = true;
+  if((fp = fopen(NVM_FILENAME, "w")) == NULL) {
+    if(errno == EACCES) {
+      isWritable = false;
+    } else {
+      throw std::runtime_error("write permission check for PMFS mount failed");
+    }
+  } else {
+    fclose(fp);
+  }
+  return isWritable;
 }
 
 #ifndef NDEBUG
