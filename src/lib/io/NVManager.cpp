@@ -26,6 +26,7 @@ namespace hyrise {
 namespace io {
 
 constexpr char NVM_MOUNTPOINT[] = "/mnt/pmfs";
+constexpr char NVM_TESTFILENAME[] = "/mnt/pmfs/hyrise_test";
 constexpr char NVM_FILENAME[] = "/mnt/pmfs/hyrise";
 constexpr size_t NVM_FILESIZE = 100 * 1024 * 1024;
 
@@ -226,7 +227,7 @@ bool NVManager::_pmfsMounted() {
 bool NVManager::_pmfsWritable() {
   FILE *fp = NULL;
   bool isWritable = true;
-  if((fp = fopen(NVM_FILENAME, "w")) == NULL) {
+  if((fp = fopen(NVM_TESTFILENAME, "w")) == NULL) {
     if(errno == EACCES) {
       isWritable = false;
     } else {
@@ -234,6 +235,7 @@ bool NVManager::_pmfsWritable() {
     }
   } else {
     fclose(fp);
+    unlink(NVM_TESTFILENAME);
   }
   return isWritable;
 }
