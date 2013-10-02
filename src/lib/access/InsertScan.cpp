@@ -13,6 +13,7 @@
 #include "io/TransactionManager.h"
 #include "io/logging.h"
 #include "io/ResourceManager.h"
+#include "io/StorageManager.h"
 
 #include "storage/Store.h"
 #include "storage/Serial.h"
@@ -117,6 +118,19 @@ std::shared_ptr<PlanOperation> InsertScan::parse(Json::Value &data) {
       return functional::collect(v, [](const Json::Value& c){ return Json::Value(c); });
     });
   }
+
+  /// ---> BEGIN HOTFIX
+  else if (data.isMember("data_table")) {
+    std::string tableName = data["data_table"].asString();
+    auto sm = io::StorageManager::getInstance();
+    if (sm->exists(tableName)) {
+      result->setInputData(sm->getTable(tableName));
+    } else {
+      throw std::runtime_error("InsertScan: table not loaded");
+    }
+  }
+  /// <--- END HOTFIX
+
   return result;
 }
 
