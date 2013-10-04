@@ -1,0 +1,13 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "ORDERS"
+    },
+    "insert": {
+       "type": "InsertScan",
+       "data" : [[:o_id, :d_id, :w_id, :c_id, :date, :o_carrier_id, :o_ol_cnt, :all_local]]
+    }
+  },
+  "edges": [["load", "insert"]]
+}

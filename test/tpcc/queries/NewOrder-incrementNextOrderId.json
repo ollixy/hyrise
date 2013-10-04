@@ -1,0 +1,23 @@
+{
+  "operators": {
+    "load": {
+       "type": "TableLoad",
+       "table": "DISTRICT"
+    },
+    "select": {
+       "type": "SimpleTableScan",
+       "predicates": [
+         {"type": "AND"},
+         {"type": "EQ", "in": 0, "f": "D_ID", "vtype": 0 /*Int*/, "value": :d_id},
+         {"type": "EQ", "in": 0, "f": "D_W_ID", "vtype": 0 /*Int*/, "value": :w_id}
+       ]
+    },
+    "update": {
+       "type": "PosUpdateScan",
+       "data": {
+          "D_NEXT_O_ID": :d_next_o_id
+       }
+    }
+  },
+  "edges": [["load", "select"], ["select", "update"]]
+}
