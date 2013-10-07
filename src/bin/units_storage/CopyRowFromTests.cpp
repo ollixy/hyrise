@@ -2,7 +2,6 @@
 #include "testing/test.h"
 
 #include "io/shortcuts.h"
-#include "io/NVManager.h"
 #include "storage/AbstractTable.h"
 #include "storage/Store.h"
 
