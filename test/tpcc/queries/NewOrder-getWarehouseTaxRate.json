@@ -7,7 +7,7 @@
     "select": {
        "type": "SimpleTableScan",
        "predicates": [
-         {"type": "EQ", "in": 0, "f": "W_ID", "vtype": 0 /*Int*/, "value": :w_id}
+         {"type": "EQ", "in": 0, "f": "W_ID", "vtype": 0 /*Int*/, "value": %(w_id)d}
        ]
     },
     "project": {

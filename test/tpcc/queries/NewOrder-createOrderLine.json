@@ -2,11 +2,11 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "ORDER-LINE"
+       "table": "ORDER_LINE"
     },
     "insert": {
        "type": "InsertScan",
-       "data" : [[:w_id, :d_id, :o_id, :ol_number, :ol_i_id, :date, :ol_amount, :ol_supply_w_id, :ol_quantity, :ol_dist_info]]
+       "data" : [[%(w_id)d, %(d_id)d, %(o_id)d, %(ol_number)d, %(ol_i_id)d, "%(date)s", %(ol_amount)d, %(ol_supply_w_id)d, %(ol_quantity)d, "%(ol_dist_info)s"]]
     }
   },
   "edges": [["load", "insert"]]

@@ -2,11 +2,11 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "NEW-ORDER"
+       "table": "NEW_ORDER"
     },
     "insert": {
        "type": "InsertScan",
-       "data" : [[:o_id, :d_id, :w_id]]
+       "data" : [[%(o_id)d, %(d_id)d, %(w_id)d]]
     }
   },
   "edges": [["load", "insert"]]

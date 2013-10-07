@@ -8,14 +8,14 @@
        "type": "SimpleTableScan",
        "predicates": [
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "D_ID", "vtype": 0 /*Int*/, "value": :d_id},
-         {"type": "EQ", "in": 0, "f": "D_W_ID", "vtype": 0 /*Int*/, "value": :w_id}
+         {"type": "EQ", "in": 0, "f": "D_ID", "vtype": 0 /*Int*/, "value": %(d_id)d},
+         {"type": "EQ", "in": 0, "f": "D_W_ID", "vtype": 0 /*Int*/, "value": %(w_id)d}
        ]
     },
     "update": {
        "type": "PosUpdateScan",
        "data": {
-          "D_NEXT_O_ID": :d_next_o_id
+          "D_NEXT_O_ID": %(d_next_o_id)d
        }
     }
   },

@@ -2,7 +2,7 @@
   "operators": {
     "load1": {
        "type": "TableLoad",
-       "table": "ORDER-LINE"
+       "table": "ORDER_LINE"
     },
     "load2": {
        "type": "TableLoad",
@@ -18,16 +18,16 @@
        "type": "SimpleTableScan",
        "predicates": [
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0, "value": :w_id},
+         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0, "value": %(w_id)d},
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0, "value": :d_id},
+         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0, "value": %(d_id)d},
          {"type": "AND"},
-         {"type": "GT", "in": 0, "f": "OL_O_ID", "vtype": 0, "value": :o_id1},
+         {"type": "GT", "in": 0, "f": "OL_O_ID", "vtype": 0, "value": %(o_id1)d},
          {"type": "AND"},
-         {"type": "LT", "in": 0, "f": "OL_O_ID", "vtype": 0, "value": :o_id2},
+         {"type": "LT", "in": 0, "f": "OL_O_ID", "vtype": 0, "value": %(o_id2)d},
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "S_W_ID", "vtype": 0, "value": :w_id},
-         {"type": "LT", "in": 0, "f": "S_QUANTITY", "vtype": 0, "value": :threshold}
+         {"type": "EQ", "in": 0, "f": "S_W_ID", "vtype": 0, "value": %(w_id)d},
+         {"type": "LT", "in": 0, "f": "S_QUANTITY", "vtype": 0, "value": %(threshold)d}
        ]
     },
     "groupby": {

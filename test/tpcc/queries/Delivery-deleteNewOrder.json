@@ -2,16 +2,16 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "NEW-ORDER"
+       "table": "NEW_ORDER"
     },
     "select": {
        "type": "SimpleTableScan",
        "predicates": [
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "NO_D_ID", "vtype": 0 /*Int*/, "value": :d_id},
+         {"type": "EQ", "in": 0, "f": "NO_D_ID", "vtype": 0 /*Int*/, "value": %(d_id)d},
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "NO_W_ID", "vtype": 0 /*Int*/, "value": :w_id},
-         {"type": "EQ", "in": 0, "f": "NO_O_ID", "vtype": 0 /*Int*/, "value": :no_o_id}
+         {"type": "EQ", "in": 0, "f": "NO_W_ID", "vtype": 0 /*Int*/, "value": %(w_id)d},
+         {"type": "EQ", "in": 0, "f": "NO_O_ID", "vtype": 0 /*Int*/, "value": %(no_o_id)d}
        ]
     },
     "delete": {

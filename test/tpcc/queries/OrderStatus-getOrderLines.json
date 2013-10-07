@@ -2,16 +2,16 @@
   "operators": {
     "load": {
        "type": "TableLoad",
-       "table": "ORDER-LINE"
+       "table": "ORDER_LINE"
     },
     "select": {
        "type": "SimpleTableScan",
        "predicates": [
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0 /*Int*/, "value": :w_id},
+         {"type": "EQ", "in": 0, "f": "OL_W_ID", "vtype": 0 /*Int*/, "value": %(w_id)d},
          {"type": "AND"},
-         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0 /*Int*/, "value": :d_id},
-         {"type": "EQ", "in": 0, "f": "OL_O_ID", "vtype": 0 /*Int*/, "value": :o_id}
+         {"type": "EQ", "in": 0, "f": "OL_D_ID", "vtype": 0 /*Int*/, "value": %(d_id)d},
+         {"type": "EQ", "in": 0, "f": "OL_O_ID", "vtype": 0 /*Int*/, "value": %(o_id)d}
        ]
     },
     "project": {
