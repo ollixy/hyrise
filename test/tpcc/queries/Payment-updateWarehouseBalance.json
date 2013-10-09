@@ -7,15 +7,14 @@
     "select": {
        "type": "SimpleTableScan",
        "predicates": [
-         {"type": "EQ", "in": 0, "f": "W_ID", "vtype": 0 /*Int*/, "value": %(w_id)d},
+         {"type": "EQ", "in": 0, "f": "W_ID", "vtype": 0 /*Int*/, "value": %(w_id)d}
        ]
     },
-    "update": {
-       "type": "PosUpdateScan",
-       "data": {
-         "W_YTD": %(w_ytd)f
-       }
-    }
+    "updateinc" : { 
+        "type" : "PosUpdateIncrementScan",
+        "column" : "W_YTD",
+        "offset" : %(w_ytd)f
+    }    
   },
-  "edges": [["load", "select"], ["select", "update"]]
+  "edges": [["load", "select"], ["select", "updateinc"]]
 }
