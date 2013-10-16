@@ -7,12 +7,12 @@ namespace hyrise { namespace access {
 
 class PosUpdateIncrementScan : public PlanOperation {
  public:
-  PosUpdateIncrementScan(std::string column, hyrise_int_t offset);
+  PosUpdateIncrementScan(std::string column, Json::Value offset);
   void executePlanOperation();
   static std::shared_ptr<PlanOperation> parse(Json::Value& data);
  private:
   const std::string _column;
-  const hyrise_int_t _offset;
+  const Json::Value _offset;
 };
 
 }}

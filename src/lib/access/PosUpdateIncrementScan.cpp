@@ -7,6 +7,8 @@
 #include "storage/AbstractTable.h"
 #include "storage/PointerCalculator.h"
 #include "storage/Store.h"
+#include "access/json_converters.h"
+#include "storage/meta_storage.h"
 
 using namespace hyrise;
 using namespace access;
@@ -15,10 +17,36 @@ namespace {
 auto _ = QueryParser::registerPlanOperation<PosUpdateIncrementScan>("PosUpdateIncrementScan");
 }
 
-PosUpdateIncrementScan::PosUpdateIncrementScan(std::string column, hyrise_int_t offset) : _column(column), _offset(offset) {} 
+
+struct add_json_value_functor {
+
+  typedef void value_type;
+
+  hyrise::storage::atable_ptr_t tab;
+  size_t col;
+  size_t row;
+  Json::Value val;
+
+  inline add_json_value_functor(hyrise::storage::atable_ptr_t t): tab(t) {
+  }
+
+  inline void set(size_t c, size_t r, Json::Value v) {
+    col = c; row = r; val = v;
+  }
+
+  template<typename T>
+  value_type operator()() {
+    T oldVal = tab->getValue<T>(col, row);
+    tab->setValue(col, row, oldVal + json_converter::convert<T>(val));
+  }
+
+};
+
+PosUpdateIncrementScan::PosUpdateIncrementScan(std::string column, Json::Value offset) : _column(column), _offset(offset) {} 
 
 std::shared_ptr<PlanOperation> PosUpdateIncrementScan::parse(Json::Value& data) {
-  return std::make_shared<PosUpdateIncrementScan>(data["column"].asString(), data["offset"].asInt());
+  return std::make_shared<PosUpdateIncrementScan>(data["column"].asString(), data["offset"]);
+
 }
 
 void PosUpdateIncrementScan::executePlanOperation() {
@@ -33,6 +61,9 @@ void PosUpdateIncrementScan::executePlanOperation() {
   auto& txmgr = tx::TransactionManager::getInstance();
   auto& modRecord = txmgr[_txContext.tid];
 
+  add_json_value_functor fun(store->getDeltaTable());
+  storage::type_switch<hyrise_basic_types> ts;
+
   std::size_t column_idx = store->numberOfColumn(_column);
   auto delta = store->getDeltaTable();
   for (const auto& old_row: *positions) {
@@ -44,8 +75,13 @@ void PosUpdateIncrementScan::executePlanOperation() {
     
     store->copyRowToDelta(store, old_row, delta_row, _txContext.tid);
     // Apply offset to original value in new row
-    delta->setValue<hyrise_int_t>(column_idx, delta_row,
-                                  delta->getValue<hyrise_int_t>(column_idx, delta_row) + _offset);
+    /*const auto& column_type = store->typeOfColumn(column_idx);
+    delta->setValue<column_type>(column_idx, delta_row,
+                                  delta->getValue<column_type>(column_idx, delta_row) + json_converter::convert<column_type>(_offset));
+    */
+    fun.set(column_idx, delta_row, _offset);
+    ts(store->typeOfColumn(column_idx), fun);
+
     modRecord.insertPos(store, delta_row);
     ++delta_row;
   }
