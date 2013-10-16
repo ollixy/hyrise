@@ -19,7 +19,10 @@
        "data": {
           "OL_DELIVERY_D": "%(date)s"
        }
+    },
+    "NoOp": {
+      "type": "NoOp"
     }
   },
-  "edges": [["load", "select"], ["select", "update"]]
+  "edges": [["load", "select"], ["select", "update"], ["update","NoOp"]]
 }

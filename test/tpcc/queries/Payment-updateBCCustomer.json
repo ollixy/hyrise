@@ -22,7 +22,10 @@
          "C_PAYMENT_CNT": %(c_payment_cnt)d,
          "C_DATA": "%(c_data)s"
        }
+    },
+    "NoOp": {
+      "type": "NoOp"
     }
   },
-  "edges": [["load", "select"], ["select", "update"]]
+  "edges": [["load", "select"], ["select", "update"], ["update","NoOp"]]
 }

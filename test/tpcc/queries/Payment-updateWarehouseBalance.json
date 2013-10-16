@@ -14,7 +14,10 @@
         "type" : "PosUpdateIncrementScan",
         "column" : "W_YTD",
         "offset" : %(w_ytd)f
+    },
+    "NoOp": {
+      "type": "NoOp"
     }    
   },
-  "edges": [["load", "select"], ["select", "updateinc"]]
+  "edges": [["load", "select"], ["select", "updateinc"], ["updateinc","NoOp"]]
 }

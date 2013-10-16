@@ -18,7 +18,10 @@
         "type" : "PosUpdateIncrementScan",
         "column" : "C_BALANCE",
         "offset" : %(ol_total)f 
+    },
+    "NoOp": {
+      "type": "NoOp"
     }
   },
-  "edges": [["load", "select"], ["select", "updateinc"]]
+  "edges": [["load", "select"], ["select", "updateinc"], ["updateinc","NoOp"]]
 }

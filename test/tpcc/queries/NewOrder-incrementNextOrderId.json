@@ -17,7 +17,10 @@
        "data": {
           "D_NEXT_O_ID": %(d_next_o_id)d
        }
+    },
+    "NoOp": {
+      "type": "NoOp"
     }
   },
-  "edges": [["load", "select"], ["select", "update"]]
+  "edges": [["load", "select"], ["select", "update"], ["update","NoOp"]]
 }

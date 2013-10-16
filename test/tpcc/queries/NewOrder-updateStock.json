@@ -20,7 +20,10 @@
           "S_REMOTE_CNT": %(s_remote_cnt)d,
           "S_YTD": %(s_ytd)d
        }
+    },
+    "NoOp": {
+      "type": "NoOp"
     }
   },
-  "edges": [["load", "select"], ["select", "update"]]
+  "edges": [["load", "select"], ["select", "update"], ["update","NoOp"]]
 }

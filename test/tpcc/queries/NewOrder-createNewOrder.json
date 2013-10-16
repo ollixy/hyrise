@@ -7,7 +7,10 @@
     "insert": {
        "type": "InsertScan",
        "data" : [[%(o_id)d, %(d_id)d, %(w_id)d]]
+    },
+    "NoOp": {
+      "type": "NoOp"
     }
   },
-  "edges": [["load", "insert"]]
+  "edges": [["load", "insert"],["insert","NoOp"]]
 }

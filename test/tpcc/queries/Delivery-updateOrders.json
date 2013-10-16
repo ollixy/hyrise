@@ -19,7 +19,10 @@
        "data": {
           "O_CARRIER_ID": %(o_carrier_id)d
        }
+    },
+    "NoOp": {
+      "type": "NoOp"
     }
   },
-  "edges": [["load", "select"], ["select", "update"]]
+  "edges": [["load", "select"], ["select", "update"], ["update","NoOp"]]
 }
