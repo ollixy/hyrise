@@ -14,6 +14,9 @@
         {"type": "EQ", "in": 0, "f": "C_LAST", "vtype": 2 /*Str*/, "value": "%(c_last)s"}
       ]
     },
+    "validate" : {
+      "type" : "ValidatePositions"
+    },
     "project": {
       "type": "ProjectionScan",
       "fields": ["C_ID", "C_FIRST", "C_MIDDLE", "C_STREET_1", "C_STREET_2", "C_CITY",
@@ -25,5 +28,5 @@
       "fields": ["C_FIRST"]
     }
   },
-  "edges": [["load", "select"], ["select", "project"], ["project", "order"]]
+  "edges": [["load", "select"], ["select", "validate"], ["validate", "project"], ["project", "order"]]
 }

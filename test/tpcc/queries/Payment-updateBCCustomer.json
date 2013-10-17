@@ -14,6 +14,9 @@
          {"type": "EQ", "in": 0, "f": "C_ID", "vtype": 0 /*Int*/, "value": %(c_id)d}
        ]
     },
+    "validate" : {
+      "type" : "ValidatePositions"
+    },
     "update": {
        "type": "PosUpdateScan",
        "data": {
@@ -27,5 +30,5 @@
       "type": "NoOp"
     }
   },
-  "edges": [["load", "select"], ["select", "update"], ["update","NoOp"]]
+  "edges": [["load", "select"], ["select", "validate"], ["validate", "update"], ["update","NoOp"]]
 }

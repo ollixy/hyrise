@@ -12,10 +12,13 @@
          {"type": "EQ", "in": 0, "f": "D_ID", "vtype": 0 /*Int*/, "value": %(d_id)d}
        ]
     },
+    "validate" : {
+      "type" : "ValidatePositions"
+    },
     "project": {
        "type": "ProjectionScan",
        "fields": ["D_TAX", "D_NEXT_O_ID"]
     }
   },
-  "edges": [["load", "select"], ["select", "project"]]
+  "edges": [["load", "select"], ["select", "validate"], ["validate", "project"]]
 }

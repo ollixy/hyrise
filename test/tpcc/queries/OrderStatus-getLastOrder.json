@@ -14,6 +14,9 @@
          {"type": "EQ", "in": 0, "f": "O_C_ID", "vtype": 0 /*Int*/, "value": %(c_id)d}
        ]
     },
+    "validate" : {
+      "type" : "ValidatePositions"
+    },
     "project": {
        "type": "ProjectionScan",
        "fields": ["O_ID", "O_CARRIER_ID", "O_ENTRY_D"]
@@ -24,5 +27,5 @@
        "asc": false
     }
   },
-  "edges": [["load", "select"], ["select", "project"], ["project", "order"]]
+  "edges": [["load", "select"], ["select", "validate"], ["validate", "project"], ["project", "order"]]
 }

@@ -10,10 +10,13 @@
          {"type": "EQ", "in": 0, "f": "W_ID", "vtype": 0 /*Int*/, "value": %(w_id)d}
        ]
     },
+    "validate" : {
+      "type" : "ValidatePositions"
+    },
     "project": {
        "type": "ProjectionScan",
        "fields": ["W_TAX"]
     }
   },
-  "edges": [["load", "select"], ["select", "project"]]
+  "edges": [["load", "select"], ["select", "validate"], ["validate", "project"]]
 }
