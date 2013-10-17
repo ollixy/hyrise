@@ -38,8 +38,8 @@ void JoinScan::executePlanOperation() {
   auto left_source = input.getTable(0),
       right_source = input.getTable(1);
 
-  storage::atable_ptr_t left_target = left_source->copy_structure(nullptr, true);
-  storage::atable_ptr_t right_target = right_source->copy_structure(nullptr, true);
+  storage::atable_ptr_t left_target = left_source->copy_structure_modifiable(nullptr, true);
+  storage::atable_ptr_t right_target = right_source->copy_structure_modifiable(nullptr, true);
   size_t reserved = std::max(left_source->size(), right_source->size());
 
   // Reserve memory
