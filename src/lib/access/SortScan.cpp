@@ -142,10 +142,6 @@ std::shared_ptr<PlanOperation> SortScan::parse(Json::Value &data) {
     s->setSortField(data["fields"][0u].asUInt());
   }
   else if (data["fields"][0u].isString()) {
-<<<<<<< HEAD
-    std::cout << data["fields"][0u].asString() << "<<<";
-=======
->>>>>>> georg/tpcc-queries
     s->setSortFieldName(data["fields"][0u].asString());
   }
   else
