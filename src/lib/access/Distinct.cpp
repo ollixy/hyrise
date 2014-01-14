@@ -46,10 +46,10 @@ void Distinct::executePlanOperation() {
     pos->push_back(e.second);
 
   // Return pointer calculator
-  addResult(PointerCalculator::create(input.getTable(0), pos));
+  addResult(storage::PointerCalculator::create(input.getTable(0), pos));
 }
 
-std::shared_ptr<PlanOperation> Distinct::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> Distinct::parse(const Json::Value &data) {
   std::shared_ptr<Distinct> s = BasicParser<Distinct>::parse(data);
   return s;
 }

@@ -1,6 +1,5 @@
 // Copyright (c) 2012 Hasso-Plattner-Institut fuer Softwaresystemtechnik GmbH. All rights reserved.
-#ifndef SRC_LIB_HELPER_PARALLEL_SORT_HPP_
-#define SRC_LIB_HELPER_PARALLEL_SORT_HPP_
+#pragma once
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,7 +9,6 @@
 #include <sys/time.h>
 #include <queue>
 #include <assert.h>
-
 
 
 template<class T, void(T::*mem_fn)(void *)>
@@ -269,7 +267,7 @@ class ParallelSort {
       pthread_t *threads = new pthread_t[merge_thread_count];
 
       for (int i = 0; i < merge_thread_count; i++) {
-        pthread_create(&threads[i], nullptr, thunk<ParallelSort, &ParallelSort::merge_thread>, new std::pair<void *, void *>(this, NULL));
+        pthread_create(&threads[i], nullptr, thunk<ParallelSort, &ParallelSort::merge_thread>, new std::pair<void *, void *>(this, nullptr));
       }
 
       for (int i = 0; i < merge_thread_count; i++) {
@@ -299,4 +297,3 @@ class ParallelSort {
   }
 };
 
-#endif  // SRC_LIB_HELPER_PARALLEL_SORT_HPP_

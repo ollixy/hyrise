@@ -1,7 +1,12 @@
 // Copyright (c) 2012 Hasso-Plattner-Institut fuer Softwaresystemtechnik GmbH. All rights reserved.
 #include "testing/test.h"
+
 #include "io/loaders.h"
 #include "io/shortcuts.h"
+#include "storage/AbstractTable.h"
+
+namespace hyrise {
+namespace io {
 
 class IoTest : public ::hyrise::Test {
 
@@ -66,4 +71,6 @@ TEST_F(IoTest, wrong_file) {
   //         OldLoader::load_with_string_header(fail_file_4, "themen | epic\nINTEGER|INTEGER\n0_R|0_R");
   //     }, OldLoaderError);
 }
+
+} } // namespace hyrise::io
 

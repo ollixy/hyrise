@@ -16,10 +16,10 @@ UnloadAll::~UnloadAll() {
 }
 
 void UnloadAll::executePlanOperation() {
-  StorageManager::getInstance()->removeAll();
+  io::StorageManager::getInstance()->removeAll();
 }
 
-std::shared_ptr<PlanOperation> UnloadAll::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> UnloadAll::parse(const Json::Value &data) {
   std::shared_ptr<UnloadAll> s = std::make_shared<UnloadAll>();
   return s;
 }

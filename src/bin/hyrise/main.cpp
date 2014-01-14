@@ -25,15 +25,18 @@ using namespace hyrise;
 using namespace log4cxx;
 using namespace log4cxx::helpers;
 
+namespace  {
+
 const char *PID_FILE = "./hyrise_server.pid";
 const char *PORT_FILE = "./hyrise_server.port";
 const size_t DEFAULT_PORT = 5000;
+// default maximum task size. 0 is disabled.
+const size_t DEFAULT_MTS = 0;
 
-// Global EBB Server instance
-static ebb_server server;
 
 LoggerPtr logger(Logger::getLogger("hyrise"));
 
+}
 
 /// To prevent multiple hyrise instances from using the same port
 /// we initialize
@@ -83,13 +86,6 @@ class PidFile {
   }
 };
 
-void shutdown(int sig) {
-  std::cout << "Graceful stop" << std::endl;
-  StorageManager::getInstance()->removeAll();
-  sleep(1);
-  ebb_server_unlisten(&server);
-}
-
 void bindToNode(int node) {
   hwloc_topology_t topology = getHWTopology();
   hwloc_cpuset_t cpuset;
@@ -113,7 +109,9 @@ void bindToNode(int node) {
   // free duplicated cpuset
   hwloc_bitmap_free(cpuset);
 
-  obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, node);
+  // assuming single machine system
+  obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, 0);
+  // set membind policy interleave for this thread
   if (hwloc_set_membind_nodeset(topology, obj->nodeset, HWLOC_MEMBIND_INTERLEAVE, HWLOC_MEMBIND_STRICT | HWLOC_MEMBIND_THREAD)) {
     char *str;
     int error = errno;
@@ -121,24 +119,24 @@ void bindToNode(int node) {
     fprintf(stderr, "Couldn't membind to nodeset  %s: %s\n", str, strerror(error));
     fprintf(stderr, "Continuing as normal, however, no guarantees\n");
     free(str);
-    //throw std::runtime_error(strerror(error));
   }
 }
 
 
 int main(int argc, char *argv[]) {
-
   size_t port = 0;
   int worker_threads = 0;
   std::string logPropertyFile;
   std::string scheduler_name;
+  size_t maxTaskSize;
 
   // Program Options
   po::options_description desc("Allowed Parameters");
   desc.add_options()("help", "Shows this help message")
   ("port,p", po::value<size_t>(&port)->default_value(DEFAULT_PORT), "Server Port")
   ("logdef,l", po::value<std::string>(&logPropertyFile)->default_value("build/log.properties"), "Log4CXX Log Properties File")
-  ("scheduler,s", po::value<std::string>(&scheduler_name)->default_value("WSCoreBoundQueuesScheduler"), "Name of the scheduler to use")
+  ("maxTaskSize,m", po::value<size_t>(&maxTaskSize)->default_value(DEFAULT_MTS), "Maximum task size used in dynamic parallelization scheduler. Use 0 for unbounded task run time.")
+  ("scheduler,s", po::value<std::string>(&scheduler_name)->default_value("ThreadPerTaskScheduler"), "Name of the scheduler to use")
   ("threads,t", po::value<int>(&worker_threads)->default_value(getNumberOfCoresOnSystem()), "Number of worker threads for scheduler (only relevant for scheduler with fixed number of threads)");
   po::variables_map vm;
 
@@ -167,14 +165,11 @@ int main(int argc, char *argv[]) {
   LOG4CXX_WARN(logger, "compiled with development settings, expect substantially lower and non-representative performance");
 #endif
 
+  taskscheduler::SharedScheduler::getInstance().init(scheduler_name, worker_threads, maxTaskSize);
 
-
-  SharedScheduler::getInstance().init(scheduler_name, worker_threads);
-
-  signal(SIGINT, &shutdown);
-  // MainS erver Loop
+  // Main Server Loop
   struct ev_loop *loop = ev_default_loop(0);
-
+  ebb_server server;
   // Initialize server based on libev event loop
   ebb_server_init(&server, loop);
 
@@ -185,10 +180,9 @@ int main(int argc, char *argv[]) {
   PidFile pi;
   PortResource pa(port, port+100, server);
 
-  //ebb_server_listen_on_port(&server, port);
   LOG4CXX_INFO(logger, "Started server on port " << pa.getPort());
   ev_loop(loop, 0);
   LOG4CXX_INFO(logger, "Stopping Server...");
-
+  ev_default_destroy ();
   return 0;
 }

@@ -16,10 +16,12 @@ namespace hyrise {
 namespace net {
 
 /// Base class for request handlers
-class AbstractRequestHandler : public Task {
+class AbstractRequestHandler : public taskscheduler::Task {
  public:
   typedef std::shared_ptr<AbstractRequestHandler> SharedPtr;
   virtual ~AbstractRequestHandler() {}
+ protected:
+  
 };
 
 struct AbstractRequestHandlerFactory {

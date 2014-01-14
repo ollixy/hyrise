@@ -1,0 +1,68 @@
+{
+    "operators": {
+        "load_customer": {
+            "type": "TableLoad",
+            "table": "CUSTOMER",
+            "filename": "tpcc/customer.csv",
+            "header": "tpcc/customer_header.tbl",
+            "delimiter": ","
+            },
+        "load_district": {
+            "type": "TableLoad",
+            "table": "DISTRICT",
+            "filename": "tpcc/district.csv",
+            "header": "tpcc/district_header.tbl",
+            "delimiter": ","
+            },
+        "load_history": {
+            "type": "TableLoad",
+            "table": "HISTORY",
+            "filename": "tpcc/history.csv",
+            "header": "tpcc/history_header.tbl",
+            "delimiter": ","
+            },
+        "load_item": {
+            "type": "TableLoad",
+            "table": "ITEM",
+            "filename": "tpcc/item.csv",
+            "header": "tpcc/item_header.tbl",
+            "delimiter": ","
+            },
+        "load_new_order": {
+            "type": "TableLoad",
+            "table": "NEW_ORDER",
+            "filename": "tpcc/new_order.csv",
+            "header": "tpcc/new_order_header.tbl",
+            "delimiter": ","
+            },
+        "load_order_line": {
+            "type": "TableLoad",
+            "table": "ORDER_LINE",
+            "filename": "tpcc/order_line.csv",
+            "header": "tpcc/order_line_header.tbl",
+            "delimiter": ","
+            },
+        "load_orders": {
+            "type": "TableLoad",
+            "table": "ORDERS",
+            "filename": "tpcc/orders.csv",
+            "header": "tpcc/orders_header.tbl",
+            "delimiter": ","
+            },
+        "load_stock": {
+            "type": "TableLoad",
+            "table": "STOCK",
+            "filename": "tpcc/stock.csv",
+            "header": "tpcc/stock_header.tbl",
+            "delimiter": ","
+            },
+        "load_warehouse": {
+            "type": "TableLoad",
+            "table": "WAREHOUSE",
+            "filename": "tpcc/warehouse.csv",
+            "header": "tpcc/warehouse_header.tbl",
+            "delimiter": ","
+        }
+    },
+    "edges" : [["load_customer","load_district"], ["load_district","load_history"], ["load_history","load_item"], ["load_item","load_new_order"], ["load_new_order","load_order_line"], ["load_order_line","load_orders"], ["load_orders","load_stock"], ["load_stock","load_warehouse"]]
+}

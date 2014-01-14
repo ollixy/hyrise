@@ -44,7 +44,7 @@ struct json_functor {
 
 template<typename T>
 Json::Value generateRowsJsonT(const T& table, const size_t transmitLimit, const size_t transmitOffset) {
-  hyrise::storage::type_switch<hyrise_basic_types> ts;
+  storage::type_switch<hyrise_basic_types> ts;
   json_functor<T> fun(table);
   Json::Value rows(Json::arrayValue);
   for (size_t row = 0; row < table->size(); ++row) {
@@ -69,12 +69,12 @@ Json::Value generateRowsJsonT(const T& table, const size_t transmitLimit, const 
   return rows;
 }
 
-Json::Value generateRowsJson(const std::shared_ptr<const AbstractTable>& table,
+Json::Value generateRowsJson(const std::shared_ptr<const storage::AbstractTable>& table,
                              const size_t transmitLimit, const size_t transmitOffset) {
-  if (const auto& store = std::dynamic_pointer_cast<const hyrise::storage::SimpleStore>(table)) {
-      return generateRowsJsonT(store, transmitLimit, transmitOffset);
+  if (const auto& store = std::dynamic_pointer_cast<const storage::SimpleStore>(table)) {
+    return generateRowsJsonT(store, transmitLimit, transmitOffset);
   } else {
-      return generateRowsJsonT(table, transmitLimit, transmitOffset);
+    return generateRowsJsonT(table, transmitLimit, transmitOffset);
   }
 }
 
@@ -83,17 +83,25 @@ const std::string ResponseTask::vname() {
 }
 
 void ResponseTask::registerPlanOperation(const std::shared_ptr<PlanOperation>& planOp) {
-  performance_attributes_t* perf = new performance_attributes_t;
+  performance_attributes_t* perf;
   std::vector<hyrise_int_t>* genKeys = new std::vector<hyrise_int_t>;
 
-  planOp->setPerformanceData(perf);
+  if (_recordPerformanceData) {
+    perf = new performance_attributes_t;
+    planOp->setPerformanceData(perf);
+  }
+  
   planOp->setGeneratedKeysData(genKeys);
 
   const auto responseTaskPtr = std::dynamic_pointer_cast<ResponseTask>(shared_from_this());
   planOp->setResponseTask(responseTaskPtr);
 
   perfMutex.lock();
-  performance_data.push_back(std::unique_ptr<performance_attributes_t>(perf));
+
+  if (_recordPerformanceData) {
+    performance_data.push_back(std::unique_ptr<performance_attributes_t>(perf));
+  }
+
   _generatedKeyRefs.push_back(std::unique_ptr<std::vector<hyrise_int_t>>(genKeys));
   perfMutex.unlock();
 }
@@ -117,20 +125,21 @@ task_states_t ResponseTask::getState() const {
 }
 
 void ResponseTask::operator()() {
-  epoch_t responseStart = get_epoch_nanoseconds();
+  epoch_t responseStart = _recordPerformanceData ? get_epoch_nanoseconds() : 0;
   Json::Value response;
 
   if (getDependencyCount() > 0) {
     PapiTracer pt;
     pt.addEvent("PAPI_TOT_CYC");
-    pt.start();
+
+    if(_recordPerformanceData) pt.start();
 
     auto predecessor = getResultTask();
     const auto& result = predecessor->getResultTable();
 
     if (getState() != OpFail) {
-      if (tx::TransactionManager::isRunningTransaction(_txContext.tid)) {
-        response["session_context"] = Json::Value(_txContext.tid);
+      if (!_isAutoCommit) {
+        response["session_context"] = std::to_string(_txContext.tid).append(" ").append(std::to_string(_txContext.lastCid));
       }
 
       if (result) {
@@ -147,34 +156,38 @@ void ResponseTask::operator()() {
         response["header"] = json_header;
       }
 
+      ////////////////////////////////////////////////////////////////////////////////////////
       // Copy Performance Data
-      Json::Value json_perf(Json::arrayValue);
-      for (const auto & attr: performance_data) {
-        Json::Value element;
-        element["papi_event"] = Json::Value(attr->papiEvent);
-        element["duration"] = Json::Value((Json::UInt64) attr->duration);
-        element["data"] = Json::Value((Json::UInt64) attr->data);
-        element["name"] = Json::Value(attr->name);
-        element["id"] = Json::Value(attr->operatorId);
-        element["startTime"] = Json::Value((double)(attr->startTime - queryStart) / 1000000);
-        element["endTime"] = Json::Value((double)(attr->endTime - queryStart) / 1000000);
-        element["executingThread"] = Json::Value(attr->executingThread);
-        json_perf.append(element);
+      if (_recordPerformanceData) {
+        Json::Value json_perf(Json::arrayValue);
+        for (const auto & attr: performance_data) {
+          Json::Value element;
+          element["papi_event"] = Json::Value(attr->papiEvent);
+          element["duration"] = Json::Value((Json::UInt64) attr->duration);
+          element["data"] = Json::Value((Json::UInt64) attr->data);
+          element["name"] = Json::Value(attr->name);
+          element["id"] = Json::Value(attr->operatorId);
+          element["startTime"] = Json::Value((double)(attr->startTime - queryStart) / 1000000);
+          element["endTime"] = Json::Value((double)(attr->endTime - queryStart) / 1000000);
+          element["executingThread"] = Json::Value(attr->executingThread);
+          json_perf.append(element);
+        }
+        
+        pt.stop();
+
+        Json::Value responseElement;
+        responseElement["duration"] = Json::Value((Json::UInt64) pt.value("PAPI_TOT_CYC"));
+        responseElement["name"] = Json::Value("ResponseTask");
+        responseElement["id"] = Json::Value("respond");
+        responseElement["startTime"] = Json::Value((double)(responseStart - queryStart) / 1000000);
+        responseElement["endTime"] = Json::Value((double)(get_epoch_nanoseconds() - queryStart) / 1000000);
+
+        std::string threadId = boost::lexical_cast<std::string>(std::this_thread::get_id());
+        responseElement["executingThread"] = Json::Value(threadId);
+        json_perf.append(responseElement);
+
+        response["performanceData"] = json_perf;
       }
-      pt.stop();
-
-      Json::Value responseElement;
-      responseElement["duration"] = Json::Value((Json::UInt64) pt.value("PAPI_TOT_CYC"));
-      responseElement["name"] = Json::Value("ResponseTask");
-      responseElement["id"] = Json::Value("respond");
-      responseElement["startTime"] = Json::Value((double)(responseStart - queryStart) / 1000000);
-      responseElement["endTime"] = Json::Value((double)(get_epoch_nanoseconds() - queryStart) / 1000000);
-
-      std::string threadId = boost::lexical_cast<std::string>(std::this_thread::get_id());
-      responseElement["executingThread"] = Json::Value(threadId);
-      json_perf.append(responseElement);
-
-      response["performanceData"] = json_perf;
 
       Json::Value jsonKeys(Json::arrayValue);
       for( const auto& x : _generatedKeyRefs) {
@@ -198,7 +211,10 @@ void ResponseTask::operator()() {
     response["error"] = errors;
   }
 
-  connection->respond(response.toStyledString());
+  LOG4CXX_DEBUG(_logger, response);
+
+  Json::FastWriter fw;
+  connection->respond(fw.write(response));
 }
 
 }

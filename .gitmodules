@@ -13,3 +13,6 @@
 [submodule "third_party/microhttpd"]
 	path = third_party/microhttpd
 	url = https://github.com/rboulton/libmicrohttpd
+[submodule "third_party/optional"]
+	path = third_party/optional
+	url = https://github.com/bastih/optional

@@ -1,7 +1,7 @@
 // Copyright (c) 2012 Hasso-Plattner-Institut fuer Softwaresystemtechnik GmbH. All rights reserved.
-#ifndef SRC_LIB_STORAGE_RAWTABLE_H_
-#define SRC_LIB_STORAGE_RAWTABLE_H_
+#pragma once
 
+#include <cassert>
 #include <cstring>
 #include <cstdint>
 
@@ -22,12 +22,11 @@ struct record_header {
 
 struct RowHelper {
   
-  record_header _header;
   const metadata_vec_t& _m;
   std::vector<byte*> _tempData;
 
   RowHelper(const metadata_vec_t& m);
-
+  ~RowHelper();
   /**
    * Based on the value type add an intermediate memory location and
    * store this until we finalize the record. This method has some
@@ -37,6 +36,7 @@ struct RowHelper {
   void set(size_t index, T val) {
     byte* tmp = (byte*) malloc(sizeof(T));
     memcpy(tmp, (byte*) &val, sizeof(T));
+    assert(_tempData[index] == nullptr);
     _tempData[index] = tmp;
   }
 
@@ -67,9 +67,7 @@ void RowHelper::set(size_t index, std::string val);
 template<>
 std::string RowHelper::convert(const byte *d, DataType t);
 
-
-}}}
-
+} // namespace rawtable
 
 class RawTable : public AbstractTable {
   typedef unsigned char byte;
@@ -108,21 +106,20 @@ public:
   void resize(const size_t nr_of_values);
 
 
-  virtual const ColumnMetadata *metadataAt(const size_t column, const size_t row = 0, 
-                                           const table_id_t table_id = 0) const;
+  const ColumnMetadata& metadataAt(const size_t column_index, const size_t row_index = 0, const table_id_t table_id = 0) const override;
   
   unsigned partitionCount() const;
 
   virtual table_id_t subtableCount() const;
   
-  virtual hyrise::storage::atable_ptr_t copy() const;
+  virtual atable_ptr_t copy() const;
 
   byte* computePosition(const size_t& column, const size_t& row) const;
 
   template <typename T>
   T getValue(const size_t column, const size_t row) const {
     const byte* tuple = computePosition(column, row);
-    return hyrise::storage::rawtable::RowHelper::convert<T>(tuple, _metadata[column].getType());
+    return rawtable::RowHelper::convert<T>(tuple, _metadata[column].getType());
   }
 
 
@@ -154,25 +151,22 @@ public:
   void appendRow(byte* tuple);
 
 
-  void appendRows(const hyrise::storage::atable_ptr_t& rows);
+  void appendRows(const atable_ptr_t& rows);
 
-  virtual void debugStructure(size_t level=0) const {
-    std::cout << std::string(level, '\t') << "RawTable " << this << std::endl;
-  }
-
+  virtual void debugStructure(size_t level=0) const;
 
   
   ////////////////////////////////////////////////////////////////////////////////////////
   // Disabled Methodsw 
-  virtual hyrise::storage::atable_ptr_t copy_structure(const field_list_t *fields = nullptr, 
-                                                        const bool reuse_dict = false, 
-                                                        const size_t initial_size = 0, 
-                                                        const bool with_containers = true, 
-                                                        const bool compressed = false) const {
+  virtual atable_ptr_t copy_structure(const field_list_t *fields = nullptr, 
+                                      const bool reuse_dict = false, 
+                                      const size_t initial_size = 0, 
+                                      const bool with_containers = true, 
+                                      const bool compressed = false) const {
     STORAGE_NOT_IMPLEMENTED(RawTable, copy_structure());
   }
 
-  virtual hyrise::storage::atable_ptr_t copy_structure_modifiable(const field_list_t *fields = nullptr, 
+  virtual atable_ptr_t copy_structure_modifiable(const field_list_t *fields = nullptr, 
                                                                    const size_t initial_size = 0, 
                                                                    const bool with_containers = true) const {
     STORAGE_NOT_IMPLEMENTED(RawTable, copy_structure_modifiable());
@@ -209,4 +203,6 @@ public:
 
 
 };
-#endif // SRC_LIB_STORAGE_RAWTABLE_H_
+
+} } // namespace hyrise::storage
+

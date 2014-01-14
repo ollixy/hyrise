@@ -5,16 +5,17 @@
  *      Author: jwust
  */
 
-#ifndef THREADPERTASKSCHEDULER_H_
-#define THREADPERTASKSCHEDULER_H_
+#pragma once
 
 #include "AbstractTaskScheduler.h"
 #include <taskscheduler/SharedScheduler.h>
 #include <memory>
-#include <mutex>
+
 #include <thread>
 #include <queue>
 
+namespace hyrise {
+namespace taskscheduler {
 
 // our worker thread objects
 class TaskExecutor {
@@ -27,17 +28,19 @@ public:
   };
 };
 
-class ThreadPerTaskScheduler : public AbstractTaskScheduler, public TaskReadyObserver {
+class ThreadPerTaskScheduler : 
+  public AbstractTaskScheduler,
+  public TaskReadyObserver,
+  public std::enable_shared_from_this<TaskReadyObserver> {
   typedef std::unordered_set<std::shared_ptr<Task> > waiting_tasks_t;
     // set for tasks with open dependencies
     waiting_tasks_t _waitSet;
     // mutex to protect waitset
-    std::mutex _setMutex;
+    lock_t _setMutex;
     // scheduler status
     scheduler_status_t _status;
     // mutex to protect status
-    std::mutex _statusMutex;
-
+    lock_t _statusMutex;
     static log4cxx::LoggerPtr _logger;
 public:
   ThreadPerTaskScheduler();
@@ -62,4 +65,5 @@ public:
   void notifyReady(std::shared_ptr<Task> task);
 };
 
-#endif /* THREADPERTASKSCHEDULER_H_ */
+} } // namespace hyrise::taskscheduler
+

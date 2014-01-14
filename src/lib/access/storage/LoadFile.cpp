@@ -22,10 +22,10 @@ LoadFile::~LoadFile() {
 }
 
 void LoadFile::executePlanOperation() {
-  output.add(Loader::shortcuts::load(StorageManager::getInstance()->makePath(_filename)));
+  output.add(io::Loader::shortcuts::load(io::StorageManager::getInstance()->makePath(_filename)));
 }
 
-std::shared_ptr<PlanOperation> LoadFile::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> LoadFile::parse(const Json::Value &data) {
   if (data["filename"].asString().empty())
     throw std::runtime_error("LoadFile invalid without \"filename\": ...");
   return std::make_shared<LoadFile>(data["filename"].asString());

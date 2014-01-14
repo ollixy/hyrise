@@ -1,5 +1,4 @@
-#ifndef SRC_LIB_HELPERS_VECTOR_HELPERS_H_
-#define SRC_LIB_HELPERS_VECTOR_HELPERS_H_
+#pragma once
 
 #include <algorithm>
 #include <functional>
@@ -63,4 +62,12 @@ bool allValid(Input values) {
   return std::all_of(std::begin(values), std::end(values), [] (decltype(*begin(values)) v) { return v != nullptr; });
 }
 
-#endif
+template <typename MapType>
+auto getOrDefault(const MapType& map, typename MapType::key_type key, typename MapType::mapped_type def) -> typename MapType::mapped_type {
+  auto f = map.find(key);
+  if (f != std::end(map)) {
+    return f->second;
+  }
+  return def;
+}
+

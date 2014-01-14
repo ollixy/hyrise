@@ -24,7 +24,6 @@
 
 #include <metis.h>
 
-using namespace layouter;
 using namespace boost::assign;
 
 
@@ -32,7 +31,7 @@ using namespace boost::assign;
 namespace std {
 
 template<>
-struct hash<subset_t> {
+struct hash<hyrise::layouter::subset_t> {
 public:
 
   size_t operator()(const std::vector<unsigned> &ref) const {
@@ -44,10 +43,10 @@ for (auto t : ref)
   }
 };
 
-}
+} // namespace std
 
-
-
+namespace hyrise {
+namespace layouter {
 
 Query::Query(LayouterConfiguration::access_type_t type, std::vector<unsigned> qA, double parameter, int weight):
   type(type), queryAttributes(qA), parameter(parameter), weight(weight) {
@@ -1032,9 +1031,9 @@ void CandidateLayouter::layout(Schema s, std::string cM) {
       size_t currentSize = subsets[index].size();
 
       // Find end of group
-      size_t stop = index;
+      size_t stop = index+1;
       while (stop < subsets.size())
-        if (subsets[++stop].size() > currentSize)
+        if (subsets[stop++].size() > currentSize)
           break;
 
       // Now for each element inside this block, find possible partners
@@ -1449,3 +1448,6 @@ for (subset_t t : l.raw())
   iterateThroughLayouts();
   std::sort(results.begin(), results.end());
 }
+
+} } // namespace hyrise::layouter
+

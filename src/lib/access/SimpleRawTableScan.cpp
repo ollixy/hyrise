@@ -69,19 +69,19 @@ void SimpleRawTableScan::setupPlanOperation() {
 }
 
 void SimpleRawTableScan::executePlanOperation() {
-  auto table = std::dynamic_pointer_cast<const RawTable>(input.getTable(0));
+  auto table = std::dynamic_pointer_cast<const storage::RawTable>(input.getTable(0));
   if (!table)
     throw std::runtime_error("Input table is no uncompressed raw table");
 
   // Prepare a result that contains the result semi-compressed, and only row-wise
-  metadata_list meta(table->columnCount());
+  storage::metadata_list meta(table->columnCount());
   for(size_t i=0; i<table->columnCount(); ++i)
     meta[i] = table->metadataAt(i);
-  auto result = std::make_shared<Table>(&meta,
-                                          nullptr,
-                                          1,  /* initial size */
-                                          false, /* sorted */
-                                          false /* compressed */);
+  auto result = std::make_shared<storage::Table>(&meta,
+                                                 nullptr,
+                                                 0,  /* initial size */
+                                                 false, /* sorted */
+                                                 false /* compressed */);
 
   // Prepare the copy operator
   storage::copy_value_functor_raw_table fun(result, table);
@@ -107,11 +107,11 @@ void SimpleRawTableScan::executePlanOperation() {
   if (_materializing) {
     addResult(result);
   } else {
-    addResult(PointerCalculator::create(table, positions));
+    addResult(storage::PointerCalculator::create(table, positions));
   }
 }
 
-std::shared_ptr<PlanOperation> SimpleRawTableScan::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> SimpleRawTableScan::parse(const Json::Value &data) {
   if (!data.isMember("predicates")) {
     throw std::runtime_error("There is no reason for a Selection without predicates");
   }

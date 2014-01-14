@@ -38,7 +38,7 @@ void SimpleTableScan::executePositional() {
       pos_list->push_back(row);
     }
   }
-  addResult(PointerCalculator::create(tbl, pos_list));
+  addResult(storage::PointerCalculator::create(tbl, pos_list));
 }
 
 void SimpleTableScan::executeMaterialized() {
@@ -71,7 +71,7 @@ void SimpleTableScan::executePlanOperation() {
   }
 }
 
-std::shared_ptr<PlanOperation> SimpleTableScan::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> SimpleTableScan::parse(const Json::Value &data) {
   std::shared_ptr<SimpleTableScan> pop = std::make_shared<SimpleTableScan>();
 
   if (data.isMember("materializing"))

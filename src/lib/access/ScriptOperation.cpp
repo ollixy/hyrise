@@ -38,7 +38,7 @@ v8::Local<v8::Object> wrapAttributeVector(std::shared_ptr<const T> table, size_t
 // with given keys. The key is the offset in this table. The first tables in
 // this list are always the input tables of the plan operation
 struct IsolateContextData {
-  std::vector<hyrise::storage::c_atable_ptr_t> tables;
+  std::vector<storage::c_atable_ptr_t> tables;
 };
 
 
@@ -85,7 +85,7 @@ v8::Handle<v8::Value> LogMessage(const v8::Arguments& args) {
 // @param suffix The suffix of the file, that defaults to ".j"
 std::string readScript(const std::string &name, const std::string &suffix = ".js") {
   FILE* file = fopen((Settings::getInstance()->getScriptPath() + "/" + name + suffix).c_str(), "rb");
-  if (file == NULL) throw std::runtime_error("Could not find file " + name);
+  if (file == nullptr) throw std::runtime_error("Could not find file " + name);
 
   fseek(file, 0, SEEK_END);
   int size = ftell(file);
@@ -550,7 +550,7 @@ v8::Handle<v8::Value> BuildTable(const v8::Arguments& args) {
   }
 
   
-  hyrise::storage::atable_ptr_t  result = TableBuilder::build(list);
+  storage::atable_ptr_t  result = TableBuilder::build(list);
   isoContext->tables.push_back(result);
   auto obj = wrapTable<AbstractTable>(result, isoContext->tables.size()-1);
   obj->Set(v8::String::New("_isModifiable"), v8::Boolean::New(true));
@@ -566,7 +566,7 @@ v8::Handle<v8::Value> BuildVerticalTable(const v8::Arguments& args) {
   v8::HandleScope handle_scope(isolate);
 
   IsolateContextData *isoContext = static_cast<IsolateContextData*>(isolate->GetData());
-  std::vector<hyrise::storage::atable_ptr_t> tabs;
+  std::vector<storage::atable_ptr_t> tabs;
   for(int i=0; i < args.Length(); ++i) {
     // The base table
     auto object = v8::Local<v8::Object>::Cast(args[i]);
@@ -715,7 +715,7 @@ void ScriptOperation::executePlanOperation() {
 
 }
 
-std::shared_ptr<PlanOperation> ScriptOperation::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> ScriptOperation::parse(const Json::Value &data) {
   auto op = std::make_shared<ScriptOperation>();
   op->setScriptName(data["script"].asString());
 

@@ -95,26 +95,25 @@ void SortScan::executePlanOperation() {
   // When table is not only a table but also using an ordered dictionary on sort field,
   // we can just sort by value_id
   // TODO: fix Table<> template
-  auto base_table = std::dynamic_pointer_cast<const Table>(table);
-
-  field_t sortField;
-  if (_sort_field_name.size() != 0) // either a column name is specified
-    sortField = table->numberOfColumn(_sort_field_name);
-  else // or a column number
-    sortField = _sort_field;
-
-  if ((table->dictionaryAt(sortField)->isOrdered()) && (base_table)) {
-    sorted_pos = ColumnSorter<ValueId, ExtractValueId>(table, sortField, asc).sort();
+  auto base_table = std::dynamic_pointer_cast<const storage::Table>(table);
+  if ((table->dictionaryAt(_sort_field)->isOrdered()) && (base_table)) {
+    sorted_pos = ColumnSorter<ValueId, ExtractValueId>(table, _sort_field, asc).sort();
   } else {
-    switch (table->metadataAt(sortField)->getType()) {
-      case IntegerType:
-        sorted_pos = ColumnSorter<hyrise_int_t, ExtractValue>(table, sortField, asc).sort();
-        break;
-      case FloatType:
-        sorted_pos = ColumnSorter<hyrise_float_t, ExtractValue>(table, sortField, asc).sort();
-        break;
-      case StringType:
-        sorted_pos = ColumnSorter<hyrise_string_t, ExtractValue>(table, sortField, asc).sort();
+    switch (table->metadataAt(_sort_field).getType()) {
+    case IntegerType:
+    case IntegerTypeDelta:
+    case IntegerTypeDeltaConcurrent:
+      sorted_pos = ColumnSorter<hyrise_int_t, ExtractValue>(table, _sort_field, asc).sort();
+      break;
+    case FloatType:
+    case FloatTypeDelta:
+    case FloatTypeDeltaConcurrent:
+      sorted_pos = ColumnSorter<hyrise_float_t, ExtractValue>(table, _sort_field, asc).sort();
+      break;
+    case StringType:
+    case StringTypeDelta:
+    case StringTypeDeltaConcurrent:
+        sorted_pos = ColumnSorter<hyrise_string_t, ExtractValue>(table, _sort_field, asc).sort();
         break;
       default:
         throw std::runtime_error("Datatype not supported");
@@ -124,7 +123,7 @@ void SortScan::executePlanOperation() {
   storage::atable_ptr_t result;
 
   if (producesPositions) {
-    result = PointerCalculator::create(table, sorted_pos);
+    result = storage::PointerCalculator::create(table, sorted_pos);
   } else {
     result = table->copy_structure_modifiable(nullptr, true);
     size_t result_row = 0;
@@ -136,7 +135,7 @@ void SortScan::executePlanOperation() {
   addResult(result);
 }
 
-std::shared_ptr<PlanOperation> SortScan::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> SortScan::parse(const Json::Value &data) {
   std::shared_ptr<SortScan> s = std::make_shared<SortScan>();
   if (data["fields"][0u].isNumeric()) {
     s->setSortField(data["fields"][0u].asUInt());

@@ -6,22 +6,25 @@
  *      Author: jwust
  */
 
-#ifndef SRC_LIB_TASKSCHEDULER_SHAREDSCHEDULER_H_
-#define SRC_LIB_TASKSCHEDULER_SHAREDSCHEDULER_H_
+#pragma once
 
 #include <taskscheduler/AbstractTaskScheduler.h>
+#include <taskscheduler/DynamicPriorityScheduler.h>
 #include <stdexcept>
 
+namespace hyrise {
+namespace taskscheduler {
+
 struct AbstractTaskSchedulerFactory {
-  virtual AbstractTaskScheduler * create(int cores) const = 0;
+  virtual std::shared_ptr<AbstractTaskScheduler> create(int cores) const = 0;
   virtual ~AbstractTaskSchedulerFactory() {}
 };
 
 /// Factory for schedulers, implements abstract factory pattern
 template<typename T>
 struct TaskSchedulerFactory : public AbstractTaskSchedulerFactory {
-  AbstractTaskScheduler * create(int cores) const {
-    return new T(cores);
+  std::shared_ptr<AbstractTaskScheduler> create(int cores) const {
+    return std::shared_ptr<AbstractTaskScheduler>(new T(cores));
   }
 };
 
@@ -35,19 +38,14 @@ public:
  * Singleton; provides reference to a shared scheduler object; scheduler is set by string; schedulers can registers
  */
 class SharedScheduler{
-  typedef std::map< std::string, AbstractTaskSchedulerFactory * > factory_map_t;
+  typedef std::map< std::string, std::unique_ptr<AbstractTaskSchedulerFactory>> factory_map_t;
   factory_map_t _schedulers;
-  AbstractTaskScheduler * _sharedScheduler;
-
-  SharedScheduler(){
-    _sharedScheduler = NULL;
-  }
+  std::shared_ptr<AbstractTaskScheduler> _sharedScheduler;
 
 public:
 
   ~SharedScheduler(){
     _schedulers.clear();
-    delete _sharedScheduler;
   }
 
   template<typename TaskSchedulerClass>
@@ -59,19 +57,22 @@ public:
   }
 
   void addScheduler(const std::string &scheduler, AbstractTaskSchedulerFactory * factory){
-    _schedulers[scheduler] = factory;
+    _schedulers[scheduler].reset(factory);
   }
 
   bool isInitialized(){
-    return (_sharedScheduler != NULL);
+    return bool(_sharedScheduler);
   }
 
-  void init(const std::string &scheduler, int cores = getNumberOfCoresOnSystem()){
+  void init(const std::string &scheduler, int cores = getNumberOfCoresOnSystem(), int maxTaskSize = 0){
 
-    if(_sharedScheduler != NULL)
+    if(_sharedScheduler)
       throw SchedulerException("Scheduler has already been initialized");
     if(_schedulers.find(scheduler) != _schedulers.end()){
       _sharedScheduler = _schedulers[scheduler]->create(cores);
+      if (auto dynamicScheduler = std::dynamic_pointer_cast<DynamicPriorityScheduler>(_sharedScheduler)) {
+      	dynamicScheduler->setMaxTaskSize(maxTaskSize);
+      }
     } else
       throw SchedulerException("Requested scheduler was not registered");
   }
@@ -80,22 +81,22 @@ public:
    * stops current scheduler gracefully; starts new scheduler
    */
   void resetScheduler(const std::string &scheduler, int cores = getNumberOfCoresOnSystem()){
-    if(_sharedScheduler != NULL)
+    if(_sharedScheduler) {
       _sharedScheduler->shutdown();
+    }
+    
     if(_schedulers.find(scheduler) != _schedulers.end()){
       _sharedScheduler = _schedulers[scheduler]->create(cores);
     } else
       throw SchedulerException("Requested scheduler was not registered");
   }
 
-  AbstractTaskScheduler * getScheduler() {
+  std::shared_ptr<AbstractTaskScheduler> getScheduler() {
     return _sharedScheduler;
   }
 
-  static SharedScheduler &getInstance(){
-    static SharedScheduler s;
-    return s;
-  }
+  static SharedScheduler &getInstance();
 };
 
-#endif  // SRC_LIB_TASKSCHEDULER_SHAREDSCHEDULER_H_
+} } // namespace hyrise::taskscheduler
+

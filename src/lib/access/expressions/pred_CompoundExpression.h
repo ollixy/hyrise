@@ -1,8 +1,10 @@
 // Copyright (c) 2012 Hasso-Plattner-Institut fuer Softwaresystemtechnik GmbH. All rights reserved.
-#ifndef SRC_LIB_ACCESS_PRED_COMPOUNDEXPRESSION_H_
-#define SRC_LIB_ACCESS_PRED_COMPOUNDEXPRESSION_H_
+#pragma once
 
 #include "pred_common.h"
+
+namespace hyrise {
+namespace access {
 
 class CompoundExpression : public SimpleExpression {
  private:
@@ -18,7 +20,7 @@ class CompoundExpression : public SimpleExpression {
   bool one_leg;
 
   explicit CompoundExpression(ExpressionType t):
-      type(t), lhs(nullptr), rhs(NULL), one_leg(t == NOT)
+      type(t), lhs(nullptr), rhs(nullptr), one_leg(t == NOT)
   {}
 
   CompoundExpression(SimpleExpression *_lhs, SimpleExpression *_rhs, ExpressionType _type) :
@@ -33,7 +35,7 @@ class CompoundExpression : public SimpleExpression {
     }
   }
 
-  virtual void walk(const std::vector<hyrise::storage::c_atable_ptr_t > &l) {
+  virtual void walk(const std::vector<storage::c_atable_ptr_t > &l) {
     lhs->walk(l);
 
     if (!one_leg) {
@@ -68,8 +70,9 @@ class CompoundExpression : public SimpleExpression {
   }
 
   inline bool isSetup() {
-    return ((one_leg) && (lhs != nullptr)) || ((rhs != NULL) && (lhs != NULL));
+    return ((one_leg) && (lhs != nullptr)) || ((rhs != nullptr) && (lhs != nullptr));
   }
 };
 
-#endif  // SRC_LIB_ACCESS_PRED_COMPOUNDEXPRESSION_H_
+} } // namespace hyrise::access
+

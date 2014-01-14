@@ -47,7 +47,7 @@ void MaterializingScan::setupPlanOperation() {
 
 void MaterializingScan::executePlanOperation() {
   const auto& in = input.getTable(0);
-  auto result = std::dynamic_pointer_cast<Table>(in->copy_structure(nullptr, true, in->size(), false));
+  auto result = std::dynamic_pointer_cast<storage::Table>(in->copy_structure(nullptr, true, in->size(), false));
 
   if (_num_samples == 0) {
     result->resize(in->size());
@@ -64,7 +64,7 @@ void MaterializingScan::executePlanOperation() {
   addResult(result);
 }
 
-std::shared_ptr<PlanOperation> MaterializingScan::parse(Json::Value &v) {
+std::shared_ptr<PlanOperation> MaterializingScan::parse(const Json::Value &v) {
   std::shared_ptr<MaterializingScan> pop = std::dynamic_pointer_cast<MaterializingScan>(BasicParser<MaterializingScan>::parse(v));
   if (v.isMember("samples"))
     pop->setSamples(v["samples"].asUInt());

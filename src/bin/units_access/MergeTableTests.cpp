@@ -10,10 +10,10 @@ namespace access {
 class MergeTableTests : public AccessTest {};
 
 TEST_F(MergeTableTests, basic_merge_table_test) {
-  auto s = Loader::shortcuts::loadMainDelta("test/merge1_main.tbl", "test/merge1_delta.tbl");
-  auto reference = Loader::shortcuts::load("test/merge1_result.tbl");
+  auto s = io::Loader::shortcuts::loadMainDelta("test/merge1_main.tbl", "test/merge1_delta.tbl");
+  auto reference = io::Loader::shortcuts::load("test/merge1_result.tbl");
 
-  ASSERT_EQ(4u, s->getMainTables()[0]->size());
+  ASSERT_EQ(4u, s->getMainTable()->size());
   ASSERT_EQ(5u, s->getDeltaTable()->size());
 
   MergeTable mt;

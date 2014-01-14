@@ -1,7 +1,11 @@
 // Copyright (c) 2012 Hasso-Plattner-Institut fuer Softwaresystemtechnik GmbH. All rights reserved.
 #include "testing/test.h"
-#include <io/loaders.h>
 
+#include "io/loaders.h"
+#include "storage/AbstractTable.h"
+
+namespace hyrise {
+namespace io {
 
 class StringLoaderTests : public ::hyrise::Test {};
 
@@ -38,3 +42,6 @@ TEST_F(StringLoaderTests, load_test_typesafe) {
 
   ASSERT_EQ(t->typeOfColumn(2), res->typeOfColumn(2));
 }
+
+} } // namespace hyrise::io
+

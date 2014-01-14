@@ -15,7 +15,7 @@ namespace access {
 
 class PlanOperation;
 
-class ResponseTask : public Task {
+class ResponseTask : public taskscheduler::Task {
  private:
   net::AbstractConnection *connection;
 
@@ -25,6 +25,7 @@ class ResponseTask : public Task {
   std::atomic<unsigned long> _affectedRows;
   tx::TXContext _txContext;
   epoch_t queryStart = 0;
+  bool _isAutoCommit = false;
   performance_vector_t performance_data;
 
   // Unique refs to the generated keys of all planops
@@ -33,6 +34,9 @@ class ResponseTask : public Task {
   std::mutex perfMutex;
   std::mutex errorMutex;
   std::vector<std::string> _error_messages;
+
+  bool _recordPerformanceData = true;
+
  public:
   explicit ResponseTask(net::AbstractConnection *connection) :
       connection(connection) {
@@ -42,6 +46,8 @@ class ResponseTask : public Task {
   virtual ~ResponseTask() {}
 
   const std::string vname();
+
+  void setRecordPerformanceData(bool val) { _recordPerformanceData = val;}
 
   epoch_t getQueryStart() {
     return queryStart;
@@ -57,7 +63,10 @@ class ResponseTask : public Task {
   std::vector<std::string> getErrorMessages() const {
     return _error_messages;
   }
-
+  void setIsAutoCommit(bool b) {
+    _isAutoCommit = b;
+  }
+  
   void setTxContext(tx::TXContext t) {
     _txContext = t;
   }

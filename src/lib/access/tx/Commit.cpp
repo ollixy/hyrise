@@ -11,9 +11,12 @@ namespace {
 
 void Commit::executePlanOperation() {
   tx::TransactionManager::commitTransaction(_txContext);
+  for(const auto& x : input.getTables()) {
+    addResult(x);
+  }
 }
 
-std::shared_ptr<PlanOperation> Commit::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> Commit::parse(const Json::Value &data) {
   return std::make_shared<Commit>();
 }
 

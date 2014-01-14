@@ -6,8 +6,7 @@
  *      Author: jwust
  */
 
-#ifndef SRC_LIB_TASKSCHEDULER_ABSTRACTTASKSCHEDULER_H_
-#define SRC_LIB_TASKSCHEDULER_ABSTRACTTASKSCHEDULER_H_
+#pragma once
 
 /*
  * Base class for Task Schedulers
@@ -21,6 +20,10 @@
 #include <iostream>
 #include <log4cxx/logger.h>
 #include "helper/HwlocHelper.h"
+#include "helper/locking.h"
+
+namespace hyrise {
+namespace taskscheduler {
 
 class AbstractTaskScheduler {
   /*
@@ -35,6 +38,8 @@ class AbstractTaskScheduler {
     STOPPED = 3
   } scheduler_state;
   typedef int scheduler_status_t; 
+
+  typedef hyrise::locking::Spinlock lock_t;
 
   virtual ~AbstractTaskScheduler() {};
   /*
@@ -59,4 +64,5 @@ class AbstractTaskScheduler {
   virtual size_t getNumberOfWorker() const = 0;
 };
 
-#endif  // SRC_LIB_TASKSCHEDULER_ABSTRACTTASKSCHEDULER_H_
+} } // namespace hyrise::taskscheduler
+

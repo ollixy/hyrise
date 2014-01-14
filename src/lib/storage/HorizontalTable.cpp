@@ -1,7 +1,9 @@
 // Copyright (c) 2012 Hasso-Plattner-Institut fuer Softwaresystemtechnik GmbH. All rights reserved.
 #include "storage/HorizontalTable.h"
 
+#include <algorithm>
 #include <cassert>
+#include <iostream>
 #include <iterator>
 
 namespace hyrise { namespace storage {
@@ -42,7 +44,7 @@ inline size_t HorizontalTable::partForRow(const size_t row) const {
   return std::distance(std::begin(_offsets), r) - 1;
 }
 
-const ColumnMetadata *HorizontalTable::metadataAt(const size_t column_index, const size_t row, const table_id_t table_id) const {
+const ColumnMetadata& HorizontalTable::metadataAt(const size_t column_index, const size_t row, const table_id_t table_id) const {
   return _parts[table_id]->metadataAt(column_index);
 }
 
@@ -90,7 +92,7 @@ size_t HorizontalTable::partitionWidth(const size_t slice) const {
   return _parts[0]->partitionWidth(slice);
 }
 
-hyrise::storage::atable_ptr_t HorizontalTable::copy() const {
+atable_ptr_t HorizontalTable::copy() const {
   throw std::runtime_error("Not implemented");
 }
 

@@ -12,7 +12,7 @@ namespace access {
 class CreateRadixTable : public PlanOperation {
 public:
   void executePlanOperation();
-  static std::shared_ptr<PlanOperation> parse(Json::Value &data);
+  static std::shared_ptr<PlanOperation> parse(const Json::Value &data);
   const std::string vname();
 };
 
@@ -26,7 +26,7 @@ public:
   RadixCluster();
 
   void executePlanOperation();
-  static std::shared_ptr<PlanOperation> parse(Json::Value &data);
+  static std::shared_ptr<PlanOperation> parse(const Json::Value &data);
   const std::string vname();
   template<typename T>
   void executeClustering();
@@ -59,7 +59,7 @@ void RadixCluster::executeClustering() {
 
   // Get the prefix sum from the input
   const auto &prefix_sum = getInputTable(2);
-  const auto &data_prefix_sum = std::dynamic_pointer_cast<FixedLengthVector<value_id_t>>(getDataVector(prefix_sum).first->copy());
+  const auto &data_prefix_sum = std::dynamic_pointer_cast<storage::FixedLengthVector<value_id_t>>(getDataVector(prefix_sum).first->copy());
 
   // Prepare mask
   auto mask = ((1 << bits()) - 1) << significantOffset();
@@ -76,12 +76,12 @@ void RadixCluster::executeClustering() {
   }
 
   // check if tab is PointerCalculator; if yes, get underlying table and actual rows and columns
-  auto p = std::dynamic_pointer_cast<const PointerCalculator>(tab);
+  auto p = std::dynamic_pointer_cast<const storage::PointerCalculator>(tab);
   if (p) {
     auto ipair = getDataVector(p->getActualTable());
     const auto &ivec = ipair.first;
 
-    const auto &dict = std::dynamic_pointer_cast<OrderPreservingDictionary<T>>(tab->dictionaryAt(p->getTableColumnForColumn(field)));
+    const auto &dict = std::dynamic_pointer_cast<storage::OrderPreservingDictionary<T>>(tab->dictionaryAt(p->getTableColumnForColumn(field)));
     const auto &offset = p->getTableColumnForColumn(field) + ipair.second;
 
     auto hasher = std::hash<T>();
@@ -102,12 +102,12 @@ void RadixCluster::executeClustering() {
     if(mvt){
 
       auto pc = mvt->containerAt(field);
-      auto p = std::dynamic_pointer_cast<const PointerCalculator>(pc);
+      auto p = std::dynamic_pointer_cast<const storage::PointerCalculator>(pc);
       if(p){
         auto ipair = getDataVector(p->getActualTable());
         const auto &ivec = ipair.first;
 
-        const auto &dict = std::dynamic_pointer_cast<OrderPreservingDictionary<T>>(tab->dictionaryAt(p->getTableColumnForColumn(field)));
+        const auto &dict = std::dynamic_pointer_cast<storage::OrderPreservingDictionary<T>>(tab->dictionaryAt(p->getTableColumnForColumn(field)));
         const auto &offset = p->getTableColumnForColumn(field) + ipair.second;
 
         auto hasher = std::hash<T>();
@@ -128,7 +128,7 @@ void RadixCluster::executeClustering() {
     } else {
       auto ipair = getDataVector(tab);
       const auto &ivec = ipair.first;
-      const auto &dict = std::dynamic_pointer_cast<OrderPreservingDictionary<T>>(tab->dictionaryAt(field));
+      const auto &dict = std::dynamic_pointer_cast<storage::OrderPreservingDictionary<T>>(tab->dictionaryAt(field));
       const auto &offset = field + ipair.second;
 
       std::hash<T> hasher;
@@ -155,7 +155,7 @@ public:
   RadixCluster2ndPass();
 
   void executePlanOperation();
-  static std::shared_ptr<PlanOperation> parse(Json::Value &data);
+  static std::shared_ptr<PlanOperation> parse(const Json::Value &data);
   const std::string vname();
   void setBits1(const uint32_t b,
                 const uint32_t sig=0);

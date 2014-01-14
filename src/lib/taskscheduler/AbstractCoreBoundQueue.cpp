@@ -14,6 +14,9 @@
 #include <iostream>
 #include <helper/HwlocHelper.h>
 
+namespace hyrise {
+namespace taskscheduler {
+
 log4cxx::LoggerPtr AbstractCoreBoundQueue::logger(log4cxx::Logger::getLogger("taskscheduler.AbstractCoreBoundQueue"));
 
 
@@ -36,6 +39,12 @@ void AbstractCoreBoundQueue::launchThread(int core) {
   //get the number of cores on system
   int NUM_PROCS = getNumberOfCoresOnSystem();
 
+  // NEver ever run antything on core 0, this is where the system runs
+  // and we can only get worse from there thatswhy we use numprocs-1 as the suitable number
+  
+  const size_t freeCores = std::min(NUM_PROCS - 1, 2);
+  core = (core % (NUM_PROCS - freeCores)) + freeCores;
+
   if (core < NUM_PROCS) {
     _thread = new std::thread(&AbstractTaskQueue::executeTask, this);
     hwloc_cpuset_t cpuset;
@@ -54,15 +63,18 @@ void AbstractCoreBoundQueue::launchThread(int core) {
       hwloc_bitmap_asprintf(&str, obj->cpuset);
       fprintf(stderr, "Couldn't bind to cpuset %s: %s\n", str, strerror(error));
       fprintf(stderr, "Continuing as normal, however, no guarantees\n");
-      //throw std::runtime_error(strerror(error));
+      free(str);
     }
-    if(hwloc_set_membind (topology, cpuset,  HWLOC_MEMBIND_FIRSTTOUCH , HWLOC_MEMBIND_THREAD )){
+    // assuming single machine system                                                                                                         
+    obj = hwloc_get_obj_by_type(topology, HWLOC_OBJ_MACHINE, 0);
+    // set membind policy interleave for this thread                                                                                          
+    if (hwloc_set_membind_nodeset(topology, obj->nodeset, HWLOC_MEMBIND_INTERLEAVE, HWLOC_MEMBIND_STRICT | HWLOC_MEMBIND_THREAD)) {
       char *str;
       int error = errno;
-      hwloc_bitmap_asprintf(&str, obj->cpuset);
-      fprintf(stderr, "Couldn't bind to memory %s: %s\n", str, strerror(error));
+      hwloc_bitmap_asprintf(&str, obj->nodeset);
+      fprintf(stderr, "Couldn't membind to nodeset  %s: %s\n", str, strerror(error));
       fprintf(stderr, "Continuing as normal, however, no guarantees\n");
-      //throw std::runtime_error(strerror(error));
+      free(str);
     }
 
     hwloc_bitmap_free(cpuset);
@@ -72,3 +84,6 @@ void AbstractCoreBoundQueue::launchThread(int core) {
     throw std::logic_error("CPU to run thread on is larger than number of total cores; seems that TaskQueue was initialized outside of SimpleTaskScheduler, which should not happen");
   }
 }
+
+} } // namespace hyrise::taskscheduler
+

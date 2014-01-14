@@ -24,7 +24,10 @@
 
 #include "testing/test.h"
 
-hyrise::storage::c_atable_ptr_t sortTable(hyrise::storage::c_atable_ptr_t table){
+namespace hyrise {
+namespace access {
+
+storage::c_atable_ptr_t sortTable(storage::c_atable_ptr_t table){
   size_t c = table->columnCount();
   for(size_t f = 0; f < c; f++){
     hyrise::access::SortScan so;
@@ -162,7 +165,7 @@ class MockedConnection : public hyrise::net::AbstractConnection {
  * that will be parsed and the necessary plan operations will be
  * instantiated.
  */
-hyrise::storage::c_atable_ptr_t executeAndWait(
+storage::c_atable_ptr_t executeAndWait(
     std::string httpQuery,
     hyrise::tx::transaction_id_t* tid_ptr,
     size_t poolSize,
@@ -182,13 +185,13 @@ hyrise::storage::c_atable_ptr_t executeAndWait(
 
   std::unique_ptr<MockedConnection> conn = make_unique<MockedConnection>(query.str());
 
-  SharedScheduler::getInstance().resetScheduler("WSCoreBoundQueuesScheduler", poolSize);
-  AbstractTaskScheduler * scheduler = SharedScheduler::getInstance().getScheduler();
+  taskscheduler::SharedScheduler::getInstance().resetScheduler("WSCoreBoundQueuesScheduler", poolSize);
+  const auto& scheduler = taskscheduler::SharedScheduler::getInstance().getScheduler();
 
-  auto request = std::make_shared<access::RequestParseTask>(conn.get());
+  auto request = std::make_shared<RequestParseTask>(conn.get());
   auto response = request->getResponseTask();
 
-  auto wait = std::make_shared<WaitTask>();
+  auto wait = std::make_shared<taskscheduler::WaitTask>();
   wait->addDependency(response);
 
   scheduler->schedule(wait);
@@ -225,3 +228,6 @@ hyrise::storage::c_atable_ptr_t executeAndWait(
 
   return result_task->getResultTable();
 }
+
+} } // namespace hyrise::access
+

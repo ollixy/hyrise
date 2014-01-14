@@ -19,10 +19,10 @@ GetTable::~GetTable() {
 }
 
 void GetTable::executePlanOperation() {
-  output.add(StorageManager::getInstance()->getTable(_name));
+  output.add(io::StorageManager::getInstance()->getTable(_name));
 }
 
-std::shared_ptr<PlanOperation> GetTable::parse(Json::Value& data) {
+std::shared_ptr<PlanOperation> GetTable::parse(const Json::Value& data) {
   return std::make_shared<GetTable>(data["name"].asString());
 }
 

@@ -38,15 +38,10 @@ void JoinScan::executePlanOperation() {
   auto left_source = input.getTable(0),
       right_source = input.getTable(1);
 
-  storage::atable_ptr_t left_target = left_source->copy_structure_modifiable(nullptr, true);
-  storage::atable_ptr_t right_target = right_source->copy_structure_modifiable(nullptr, true);
-  size_t reserved = std::max(left_source->size(), right_source->size());
+  storage::atable_ptr_t left_target = left_source->copy_structure(nullptr, true);
+  storage::atable_ptr_t right_target = right_source->copy_structure(nullptr, true);
 
-  // Reserve memory
-  left_target->reserve(reserved);
-  right_target->reserve(reserved);
   storage::pos_t result_row = 0;
-
   for (storage::pos_t left_row = 0, left_size = left_source->size(); left_row < left_size; ++left_row) {
     for (storage::pos_t right_row = 0, right_size = right_source->size(); right_row < right_size; ++right_row) {
       if ((*_join_condition)(left_row, right_row)) {
@@ -103,7 +98,7 @@ void JoinScan::addJoinExpression(JoinExpression *expression) {
     if (top->rhs == nullptr) top->rhs = expression;
     else if (top->lhs == nullptr) top->lhs = expression;
     else throw std::runtime_error("Invalid expression");
-    if (top->rhs != nullptr && top->lhs != NULL) _compound_stack.pop();
+    if (top->rhs != nullptr && top->lhs != nullptr) _compound_stack.pop();
   }
 }
 

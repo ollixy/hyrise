@@ -1,7 +1,10 @@
 // Copyright (c) 2012 Hasso-Plattner-Institut fuer Softwaresystemtechnik GmbH. All rights reserved.
 #include "testing/test.h"
 
-#include <storage/PrettyPrinter.h>
+#include "storage/AbstractTable.h"
+#include "storage/PrettyPrinter.h"
+
+namespace hyrise {
 
 ::testing::AssertionResult AssertTableContentEquals(const char *left_exp,
                                                     const char *right_exp,
@@ -18,3 +21,6 @@
   return ::testing::AssertionFailure() << buf.str()
                                        << "The content of " << left_exp << " does not equal the content of " << right_exp;
 }
+
+} // namespace hyrise
+

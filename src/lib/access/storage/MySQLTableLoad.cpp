@@ -21,16 +21,16 @@ MySQLTableLoad::~MySQLTableLoad() {
 }
 
 void MySQLTableLoad::executePlanOperation() {
-  StorageManager *sm = StorageManager::getInstance();
+  auto sm = io::StorageManager::getInstance();
   storage::atable_ptr_t t;
   if (sm->exists(_table_name)) {
     t = sm->getTable(_table_name);
     addResult(t);
   } else {
-    t = Loader::load(
-          Loader::params().setInput(
-            MySQLInput(
-              MySQLInput::params()
+    t = io::Loader::load(
+          io::Loader::params().setInput(
+            io::MySQLInput(
+              io::MySQLInput::params()
               .setSchema(_database_name)
               .setTable(_table_name)
               .setLimit(_load_limit)
@@ -41,7 +41,7 @@ void MySQLTableLoad::executePlanOperation() {
   }
 }
 
-std::shared_ptr<PlanOperation> MySQLTableLoad::parse(Json::Value &data) {
+std::shared_ptr<PlanOperation> MySQLTableLoad::parse(const Json::Value &data) {
   std::shared_ptr<MySQLTableLoad> s = std::make_shared<MySQLTableLoad>();
   s->setTableName(data["table"].asString());
   s->setDatabaseName(data["database"].asString());

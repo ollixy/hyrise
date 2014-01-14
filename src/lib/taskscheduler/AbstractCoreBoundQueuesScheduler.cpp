@@ -7,6 +7,9 @@
 
 #include "AbstractCoreBoundQueuesScheduler.h"
 
+namespace hyrise {
+namespace taskscheduler {
+
 log4cxx::LoggerPtr AbstractCoreBoundQueuesScheduler::_logger = log4cxx::Logger::getLogger("taskscheduler.AbstractCoreBoundQueuesScheduler");
 
 
@@ -31,8 +34,8 @@ void AbstractCoreBoundQueuesScheduler::schedule(std::shared_ptr<Task> task) {
   if (task->isReady())
     pushToQueue(task);
   else {
-    task->addReadyObserver(this);
-    std::lock_guard<std::mutex> lk(_setMutex);
+    task->addReadyObserver(shared_from_this());
+    std::lock_guard<lock_t> lk(_setMutex);
     _waitSet.insert(task);
     LOG4CXX_DEBUG(_logger,  "Task " << std::hex << (void *)task.get() << std::dec << " inserted in wait queue");
   }
@@ -86,3 +89,6 @@ void AbstractCoreBoundQueuesScheduler::shutdown() {
   }
   _status = STOPPED;
 }
+
+} } // namespace hyrise::taskscheduler
+

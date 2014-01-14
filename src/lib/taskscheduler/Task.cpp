@@ -8,8 +8,24 @@
 
 #include "taskscheduler/Task.h"
 
+#include "log4cxx/logger.h"
+
 #include <iostream>
 #include <thread>
+#include <algorithm>
+
+namespace {
+log4cxx::LoggerPtr _logger(log4cxx::Logger::getLogger("hyrise.taskscheduler"));
+}
+
+namespace hyrise {
+namespace taskscheduler {
+
+std::vector<std::shared_ptr<Task>> Task::applyDynamicParallelization(size_t dynamicCount){
+  LOG4CXX_ERROR(_logger, "Dynamic Parallelization has not been implemented for this operator.");
+  LOG4CXX_ERROR(_logger, "Running without parallelization.");
+  return { shared_from_this() };
+}
 
 void Task::lockForNotifications() {
   _notifyMutex.lock();
@@ -20,18 +36,32 @@ void Task::unlockForNotifications() {
 }
 
 void Task::notifyReadyObservers() {
-	std::lock_guard<std::mutex> lk(_observerMutex);
-	std::vector<TaskReadyObserver *>::iterator itr;
-	for (itr = _readyObservers.begin(); itr != _readyObservers.end(); ++itr) {
-		(*itr)->notifyReady(shared_from_this());
+  // Lock and copy observers.
+  // This way we do not run any callbacks while holding a lock.
+  std::vector<std::weak_ptr<TaskReadyObserver>> targets;
+	{
+    std::lock_guard<decltype(_observerMutex)> lk(_observerMutex);
+    targets = _readyObservers;
+  }
+	for (const auto& target : targets) {
+    if (auto observer = target.lock()) {
+      observer->notifyReady(shared_from_this());  
+    }
 	}
 }
 
 void Task::notifyDoneObservers() {
-	std::lock_guard<std::mutex> lk(_observerMutex);
-	std::vector<TaskDoneObserver *>::iterator itr;
-	for (itr = _doneObservers.begin(); itr != _doneObservers.end(); ++itr) {
-		(*itr)->notifyDone(shared_from_this());
+  // Lock and copy observers.
+  // This way we do not run any callbacks while holding a lock.
+  std::vector<std::weak_ptr<TaskDoneObserver>> targets;
+  {
+    std::lock_guard<decltype(_observerMutex)> lk(_observerMutex);
+    targets = _doneObservers;  
+  }
+	for (const auto& target : targets) {
+    if (auto observer = target.lock()) {
+      observer->notifyDone(shared_from_this());  
+    }
 	}
 }
 
@@ -40,23 +70,67 @@ Task::Task(): _dependencyWaitCount(0), _preferredCore(NO_PREFERRED_CORE), _prefe
 
 void Task::addDependency(std::shared_ptr<Task> dependency) {
   {
-    std::lock_guard<std::mutex> lk(_depMutex);
+    std::lock_guard<decltype(_depMutex)> lk(_depMutex);
     _dependencies.push_back(dependency);
     ++_dependencyWaitCount;
   }
-  dependency->addDoneObserver(this);
-
+  dependency->addDoneObserver(shared_from_this());
 }
 
-void Task::addReadyObserver(TaskReadyObserver *observer) {
+void Task::addDoneDependency(std::shared_ptr<Task> dependency) {
+  {
+    std::lock_guard<decltype(_depMutex)> lk(_depMutex);
+    _dependencies.push_back(dependency);
+  }
+}
 
-  std::lock_guard<std::mutex> lk(_observerMutex);
+void Task::removeDependency(std::shared_ptr<Task> dependency) {
+    
+    std::lock_guard<decltype(_depMutex)> lk(_depMutex);
+    // remove from dependencies
+    auto newEnd = std::remove(_dependencies.begin(), _dependencies.end(), dependency);
+    if (newEnd != _dependencies.end()) { // we actually removed something
+      _dependencies.erase(newEnd, _dependencies.end());
+      --_dependencyWaitCount;
+    }
+}
+
+void Task::changeDependency(std::shared_ptr<Task> from, std::shared_ptr<Task> to) {
+    
+    std::lock_guard<decltype(_depMutex)> lk(_depMutex);
+    // find from dependencies
+    for(size_t i = 0, size = _dependencies.size(); i < size; i++){
+      if(_dependencies[i] == from){
+        _dependencies[i] = to;
+      }
+    }
+    // add new done observer
+    to->addDoneObserver(std::dynamic_pointer_cast<Task>(shared_from_this()));
+}
+
+void Task::setDependencies(std::vector<std::shared_ptr<Task> > dependencies, int count) {
+    std::lock_guard<decltype(_depMutex)> lk(_depMutex);
+    _dependencies = dependencies;
+    _dependencyWaitCount = 0;
+}
+
+bool Task::isDependency(const task_ptr_t& task) {
+  std::lock_guard<decltype(_depMutex)> lk(_depMutex);
+  return std::any_of(
+      _dependencies.begin(),
+      _dependencies.end(),
+      [task](task_ptr_t t) {return t == task;});
+}
+
+void Task::addReadyObserver(const std::shared_ptr<TaskReadyObserver>& observer) {
+
+  std::lock_guard<decltype(_observerMutex)> lk(_observerMutex);
   _readyObservers.push_back(observer);
 }
 
-void Task::addDoneObserver(TaskDoneObserver *observer) {
+void Task::addDoneObserver(const std::shared_ptr<TaskDoneObserver>& observer) {
 
-  std::lock_guard<std::mutex> lk(_observerMutex);
+  std::lock_guard<decltype(_observerMutex)> lk(_observerMutex);
   _doneObservers.push_back(observer);
 }
 
@@ -68,13 +142,13 @@ void Task::notifyDone(std::shared_ptr<Task> task) {
   if (t == 0) {
     if(_preferredCore == NO_PREFERRED_CORE && _preferredNode == NO_PREFERRED_NODE)
       _preferredNode = task->getActualNode();
-    std::lock_guard<std::mutex> lk(_notifyMutex);
+    std::lock_guard<decltype(_notifyMutex)> lk(_notifyMutex);
     notifyReadyObservers();
   }
 }
 
 bool Task::isReady() {
-  std::lock_guard<std::mutex> lk(_depMutex);
+  std::lock_guard<decltype(_depMutex)> lk(_depMutex);
   return (_dependencyWaitCount == 0);
 }
 
@@ -102,14 +176,14 @@ WaitTask::WaitTask() {
 
 void WaitTask::operator()() {
   {
-    std::lock_guard<std::mutex> lock(_mut);
+    std::lock_guard<decltype(_mut)> lock(_mut);
     _finished = true;
   }
   _cond.notify_one();
 }
 
 void WaitTask::wait() {
-  std::unique_lock<std::mutex> ul(_mut);
+  std::unique_lock<decltype(_mut)> ul(_mut);
   while (!_finished) {
     _cond.wait(ul);
   }
@@ -126,3 +200,6 @@ void SleepTask::operator()() {
 void SyncTask::operator()() {
   //do nothing
 }
+
+} } // namespace hyrise::taskscheduler
+
