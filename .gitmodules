@@ -10,3 +10,6 @@
 [submodule "third_party/cereal"]
 	path = third_party/cereal
 	url = https://github.com/USCiLab/cereal.git
+[submodule "third_party/microhttpd"]
+	path = third_party/microhttpd
+	url = https://github.com/rboulton/libmicrohttpd
